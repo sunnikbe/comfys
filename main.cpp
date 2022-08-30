@@ -1,12 +1,8 @@
-// Look, our first C++ program!
-
-#include <iostream>
+#include "my_header.hpp"
 
 int main()
 {
-  // Print a message to screen
-  std::cout << "Hello, Sunniva!\n";
+  print_message();
 
-  // Return 0 when done
   return 0;
 }
