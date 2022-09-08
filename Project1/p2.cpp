@@ -1,4 +1,4 @@
-#include "project1_headerfile.hpp"
+#include "header.hpp"
 
 // Defining x vector and filling with values between 0 and 1
 int N = 100;
