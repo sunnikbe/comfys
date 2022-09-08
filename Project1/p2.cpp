@@ -13,7 +13,7 @@ double u(double x_i) {
 
 int main(){
   // setting filename for txt file
-  std::string filename = "p1p2data.txt";
+  std::string filename = "p2.txt";
 
   // creating and opening output file
   std::ofstream ofile;
