@@ -1,7 +1,7 @@
 // Everything I need headerfile
 
 #include <armadillo>
-#include <cmath> // is this needed?
+#include <cmath> 
 #include <iostream>
 #include <string>
 #include <fstream>
