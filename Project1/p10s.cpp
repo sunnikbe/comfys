@@ -1,7 +1,7 @@
 #include "header.hpp"
 #include <time.h>
 
-// Timing general alg. p7.cpp
+// Timing special alg. p9.cpp
 
 //General algorithm
 double n_steps = pow(10.,6.); // Is to be changed
@@ -27,8 +27,6 @@ double c = -1.0;
 //Defining v and g vectors
 arma::vec v = arma::vec(m);
 arma::vec g = arma::vec(m);
-//tilde vectors
-arma::vec bt = arma::vec(m);
 arma::vec gt = arma::vec(m);
 
 int main ()
@@ -40,24 +38,20 @@ int main ()
 
 
 
-  //Initial values
-  bt[0] = b;
+  //Initial conditions
   gt[0] = hh*f(x[0]);
+  v[m] = 0.0;
 
   // Forward sub
+  double d = a/b;
   for (int i = 1; i <= (m - 1); i++){
-    bt[i] = b - (a/(bt[i - 1]))*c;
-    gt[i] = hh*f(x[i]) - (a/(bt[i - 1]))*gt[i - 1];
+    gt[i] = hh*f(x[i]) - d*gt[i - 1];
   }
-
 
   // Back sub
   for (int i = (m - 2); i >= 1; i--){
-    v[i] = (gt[i] - (c*(v[i + 1])))/(bt[i]);
+    v[i] = (gt[i] - c*(v[i + 1]))/b;
   }
-
-  //Last element of v - vec
-  v[m] = (gt[m])/(bt[m]);
 
 
 
@@ -71,7 +65,7 @@ int main ()
 
   // Write to file for calc. later
   // setting filename for txt file
-  std::string filename = "p10.txt";
+  std::string filename = "p10s.txt";
 
   // creating and opening output file
   std::ofstream ofile;
