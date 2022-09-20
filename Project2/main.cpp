@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <assert.h>
+#include "tridiagonal.hpp"
 
 double largest_off_diagonal_element(arma::mat A, int& k, int& l);
 void jacobi_rotate(arma::mat& A, arma::mat& R);
@@ -14,9 +15,11 @@ void jacobi_eigensolver();
 int main(){
     // create a symmetric matrix A of size NxN
     int N = 6;
-    arma::mat A = arma::mat(N, N).randn();
-    A = arma::symmatu(A);
-    A.save("Output.txt", arma::raw_ascii);
+    //arma::mat A = arma::mat(N, N).zeros();
+    
+    double a = 1;
+    double d = 2;
+    arma::mat A = create_symmetric_tridiag(N,a,d);  
 
     // test the largest off diagonal element function
     double max_val_test;
@@ -30,8 +33,22 @@ int main(){
     // create matrix R^(1) = I, R^(m) = S_m
     arma::mat R = arma::mat(N,N,arma::fill::eye);
     jacobi_rotate(A, R);
-    A.save("A_matrix.txt", arma::raw_ascii);
-    R.save("R_matrix.txt", arma::raw_ascii);
+    A.save("diag_mat.txt", arma::raw_ascii);
+
+    std::string filename = "eigenvectors.txt";
+    std::ofstream ofile;
+    ofile.open(filename);
+    ofile << std::setw(-1) << "#" << std::setw(7) << "v_1" << std::endl;
+    ofile.close();
+    R.save(filename, arma::raw_ascii);
+
+    arma::vec eig_val = A.diag();
+    filename = "eigenvalues.txt";
+    ofile.open(filename);
+    ofile << std::setw(-1) << "#" << std::setw(13) << "eigenvalues" << std::endl;
+    for (int i = 0; i < N; i++){
+        ofile << std::setw(15) << std::scientific << eig_val(i) << std::endl;
+    }
 
     return 0;
 }

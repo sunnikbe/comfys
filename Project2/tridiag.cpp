@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "tridiagonal.hpp"
+#include "analytical_eigen.hpp"
 
 // short script that test the create tridiagonal matrix function from
 // "tridiagonal.hpp" script and then saves it as a txt file
@@ -28,6 +29,8 @@ int main(){
 
     eigvec.save("eigvec.txt", arma::raw_ascii);
     eigval.save("eigval.txt", arma::raw_ascii);
+
+    compute_analytical_eigen_val_vec(N,d,a);
 
     return 0;
 }
