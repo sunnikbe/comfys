@@ -25,9 +25,9 @@ int main(){
     arma::mat B = arma::mat(4,4).zeros();
     B.diag().ones();
     B(1,2) = -0.7;
-    B(2,1) = B(2,3);
+    B(2,1) = B(1,2);
     B(0,3) = 0.5;
-    B(3,0) = B(3,0);
+    B(3,0) = B(0,3);
 
     double max_val_test;
     int k,l;
