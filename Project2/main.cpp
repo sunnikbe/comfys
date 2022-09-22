@@ -17,7 +17,7 @@ int main(){
 
   int n = 10; // number of steps
   int N = n - 1; // interior points
-  double h = 1/n; // stepsize
+  double h = 1./n; // stepsize
 
     // create a symmetric matrix A of size NxN
     //arma::mat A = arma::mat(N, N).zeros();
@@ -28,25 +28,25 @@ int main(){
     double d = 2/h_sq;
     arma::mat A = create_symmetric_tridiag(N,a,d);
 
-    // Problem 5a) running jacobi_rotate
-    // Writing to file
-      std::string filename = "Nvsnum_iter.txt";
+    // // Problem 5a,b) running jacobi_rotate with diagonal matrix and dense
+    // // Writing to file
+      std::string filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
       std::ofstream ofile;
       ofile.open(filename);
 
-      arma::vec N_vals = {50, 100, 150, 200, 250};
+      arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
         for (int i: N_vals){
-            arma::mat A = create_symmetric_tridiag(i,a,d);
-            arma::mat R = arma::mat(i,i,arma::fill::eye);
-            double num_it = jacobi_rotate(A, R);
+            arma::mat A = arma::mat(i, i).randn(); // for 5a) = create_symmetric_tridiag(i, a, d);
+            // Symmetrize the matrix by reflecting the upper triangle to lower triangle
+            A = arma::symmatu(A); // only for 5b
+            arma::mat R = arma::mat(i, i, arma::fill::eye);
+            int num_iter = jacobi_rotate(A, R);
 
             ofile << std::setw(3) << i
-                << std::setw(20) << std::scientific << num_it
+                << std::setw(20) << std::scientific << num_iter
                 << std::endl;
     }
       ofile.close();
-
-
 
 
     // Problem 3b) test the largest off diagonal element function
@@ -71,9 +71,6 @@ int main(){
     A.save("diag_mat.txt", arma::raw_ascii);
 
     filename = "eigenvectors.txt";
-    ofile.open(filename);
-    ofile << std::setw(-1) << "#" << std::setw(7) << "v_1" << std::endl;
-    ofile.close();
     R.save(filename, arma::raw_ascii);
 
     arma::vec eig_val = A.diag();
