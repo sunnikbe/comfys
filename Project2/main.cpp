@@ -175,7 +175,6 @@ void jacobi_eigensolver(arma::mat &A, arma::mat& R, arma::mat& eigenvectors, arm
 
     eigenvalues = A.diag();
     arma::uvec sorted_indices = arma::sort_index(eigenvalues);
-    sorted_indices.print(std::cout);
     eigenvalues = sort(eigenvalues);
     eigenvectors = R;
     int N = R.n_rows;
