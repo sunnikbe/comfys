@@ -1,52 +1,57 @@
 
-#include <iostream>
-#include <armadillo>
-#include <cmath>
-#include <fstream>
-#include <string>
-#include <iomanip>
-#include <stdio.h>
-#include <assert.h>
 #include "tridiagonal.hpp"
 
 double largest_off_diagonal_element(arma::mat A, int& k, int& l);
-int jacobi_rotate(arma::mat& A, arma::mat& R);
-int jacobi_eigensolver();
+void jacobi_rotate(arma::mat& A, arma::mat& R,int& num_iter);
+void jacobi_eigensolver(arma::mat &A, arma::mat& R, arma::mat& eigenvectors, arma::vec& eigenvalues, int& max_iter, int& num_iter, double tol);
 int main(){
-  // Discretization with n = 10 steps and n = 100 steps
+    std::string filename;
+    std::ofstream ofile;
+    arma::mat eigvecs;
+    arma::vec eigvals;
+    int max_iter = 100000;
+    double epsilon = 1e-8;
+    int N,n,num_iter,k,l;
+    double h,a,d;
 
-  int n = 10; // number of steps
-  int N = n - 1; // interior points
-  double h = 1./n; // stepsize
+    // Discretization with n = 10 steps and n = 100 steps
+
+    n = 10; // number of steps
+    N = n - 1; // interior points
+    h = 1./n; // stepsize
 
     // create a symmetric matrix A of size NxN
     //arma::mat A = arma::mat(N, N).zeros();
 
     double h_sq = std::pow(h, 2);
 
-    double a = -1/h_sq;
-    double d = 2/h_sq;
+    a = -1/h_sq;
+    d = 2/h_sq;
     arma::mat A = create_symmetric_tridiag(N,a,d);
 
     // // Problem 5a,b) running jacobi_rotate with diagonal matrix and dense
     // // Writing to file
-      std::string filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
-      std::ofstream ofile;
-      ofile.open(filename);
+    filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
+    ofile;
+    ofile.open(filename);
 
-      arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
-        for (int i: N_vals){
-            arma::mat A = arma::mat(i, i).randn(); // for 5a) = create_symmetric_tridiag(i, a, d);
-            // Symmetrize the matrix by reflecting the upper triangle to lower triangle
-            A = arma::symmatu(A); // only for 5b
-            arma::mat R = arma::mat(i, i, arma::fill::eye);
-            int num_iter = jacobi_rotate(A, R);
+    /*arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+    for (int i: N_vals){
+        // problem 5a)
+        //arma::mat A = create_symmetric_tridiag(i, a, d);
 
-            ofile << std::setw(3) << i
-                << std::setw(20) << std::scientific << num_iter
-                << std::endl;
+        // problem 5b)
+        arma::mat A = arma::mat(i, i).randn();
+        // Symmetrize the matrix by reflecting the upper triangle to lower triangle
+        A = arma::symmatu(A); // only for 5b
+        arma::mat R = arma::mat(i, i, arma::fill::eye);
+        jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
+
+        ofile << std::setw(3) << i
+        << std::setw(20) << std::scientific << num_iter
+        << std::endl;
     }
-      ofile.close();
+    ofile.close();*/
 
 
     // Problem 3b) test the largest off diagonal element function
@@ -58,28 +63,24 @@ int main(){
     B(3,0) = B(0,3);
 
     double max_val_test;
-    int k,l;
     max_val_test = largest_off_diagonal_element(B,k,l);
 
+    // print the maximum value and indices k and l
     printf("max value = %4.2f \n", max_val_test);
     printf("k = %i \n", k);
     printf("l = %i \n", l);
 
+    // problem 4
     // create matrix R^(1) = I, R^(m) = S_m
+    N = 6;
     arma::mat R = arma::mat(N,N,arma::fill::eye);
-    jacobi_rotate(A, R);
-    A.save("diag_mat.txt", arma::raw_ascii);
+    A = create_symmetric_tridiag(N,-1,2);
+    jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
 
-    filename = "eigenvectors.txt";
-    R.save(filename, arma::raw_ascii);
-
-    arma::vec eig_val = A.diag();
-    filename = "eigenvalues.txt";
-    ofile.open(filename);
-    ofile << std::setw(-1) << "#" << std::setw(13) << "eigenvalues" << std::endl;
-    for (int i = 0; i < N; i++){
-        ofile << std::setw(15) << std::scientific << eig_val(i) << std::endl;
-    }
+    printf("Eigenvalues:\n");
+    eigvals.print(std::cout);
+    printf("Eigenvectors as columns:\n");
+    eigvecs.print(std::cout);
 
     return 0;
 }
@@ -90,14 +91,14 @@ double largest_off_diagonal_element(arma::mat A, int& k, int& l){
     // test that A is a square matrix, gives error if not
     assert (A.is_square() != 0);
 
-    double max_val;
+    double max_val = 0;
     k = 0;
     l = 1;
     for (int j = 1; j < n; j++){
         for (int i = 0; i < j; i++){
             if (std::abs(A(i,j)) > max_val){
                 max_val = std::abs(A(i,j));
-                // set the new indeces to k and l
+                // set the new indices to k and l
                 k = i;
                 l = j;
             }
@@ -107,46 +108,36 @@ double largest_off_diagonal_element(arma::mat A, int& k, int& l){
     return max_val;
 }
 
+
 // solve the eigen equation using Jacobi rotation method
-int jacobi_rotate(arma::mat& A, arma::mat& R){
-    double epsilon = 1e-8; // toleranse = epsilon
+void jacobi_rotate(arma::mat& A, arma::mat& R, int k, int l){
     // declare variables used in the algorithm
-    double tau, tan, cos, sin, max_val;
+    double tau, tan, cos, sin;
     int N = A.n_rows;
-    int k,l;
-    // start with finding the largest off-diagonal value in A
-    max_val = largest_off_diagonal_element(A,k,l);
 
-    int num_iter = 0; // count the number of iterations done
-    while(max_val > epsilon){
-        tau = (A(l,l) - A(k,k))/(2*A(k,l));
-        if (tau > 0){
-            tan = 1/(tau + std::sqrt(1 + std::pow(tau,2)));
-        }
-        else{
-            tan = 1/(-tau + std::sqrt(1 + std::pow(tau,2)));
-        }
-        cos = 1/(1 + std::pow(tan,2));
-        sin = cos*tan;
+    tau = (A(l,l) - A(k,k))/(2*A(k,l));
+    if (tau > 0){
+        tan = 1./(tau + std::sqrt(1 + std::pow(tau,2)));
+    }
+    else{
+        tan = -1./(-tau + std::sqrt(1 + std::pow(tau,2)));
+    }
+    cos = 1./std::sqrt(1 + std::pow(tan,2));
+    sin = cos*tan;
 
-        // transforming the current A matrix
-        // by first updating the elements with indeces k and l
-        double a_kk = A(k, k);
-        A(k,k) = A(k,k)*std::pow(cos,2) - 2*A(k,l)*cos*sin + A(l,l)*std::pow(sin,2);
-        A(l,l) = A(l,l)*std::pow(cos,2) + 2*A(k,l)*cos*sin + a_kk*std::pow(sin,2);
-        A(k,l) = 0;
-        A(l,k) = 0;
+    // transforming the current A matrix
+    // by first updating the elements with indeces k and l
+    double a_kk = A(k,k);
+    double a_ll = A(l,l);
+    A(k,k) = a_kk*std::pow(cos,2) - 2*A(k,l)*cos*sin + a_ll*std::pow(sin,2);
+    A(l,l) = a_ll*std::pow(cos,2) + 2*A(k,l)*cos*sin + a_kk*std::pow(sin,2);
+    A(k,l) = 0;
+    A(l,k) = 0;
 
-        // then updating the rest of the elements where i != k,l along the k,l rows and columns
-        double a_ik, a_il;
-        for (int i = 0; i < N - 2; i++){
-          // does not go through i = k or i = l, also setting N - 2 because two are skipped
-          if (i == k){
-            i = k + 1;
-          }
-          if (i == l){
-            i = l + 1;
-          }
+    // then updating the rest of the elements where i != k,l along the k,l rows and columns
+    double a_ik, a_il, r_ik, r_il;
+    for (int i = 0; i < N; i++){
+        if (i != k && i != l){
             a_ik = A(i,k);
             a_il = A(i,l);
             A(i,k) = a_ik*cos - a_il*sin;
@@ -156,17 +147,40 @@ int jacobi_rotate(arma::mat& A, arma::mat& R){
         }
 
         // update the overall rotation matrix
-        double r_ik;
-        for (int i = 0; i < N; i++){
-            r_ik = R(i,k);
-            R(i,k) = R(i,k)*cos - R(l,l)*sin;
-            R(i,l) = R(i,l)*cos + R(i,k)*sin;
-        }
-
-        // find the next off-diagonal element and continue until the tolerance is reached
-        max_val = largest_off_diagonal_element(A,k,l);
-        num_iter += 1;
+        r_ik = R(i,k);
+        r_il = R(i,l);
+        R(i,k) = r_ik*cos - r_il*sin;
+        R(i,l) = r_il*cos + r_ik*sin;
     }
-    printf("number of iterations = %i \n", num_iter);
-    return num_iter;
 }
+
+
+void jacobi_eigensolver(arma::mat &A, arma::mat& R, arma::mat& eigenvectors, arma::vec& eigenvalues, int& max_iter, int& num_iter, double tol){
+
+    // start with finding the largest off-diagonal value in A
+    int k = 0;
+    int l = 1;
+    double max_val;
+    max_val = largest_off_diagonal_element(A,k,l);
+
+    num_iter = 0; // count the number of iterations done
+    while(max_val > tol && num_iter < max_iter){
+        jacobi_rotate(A, R, k, l);
+        num_iter++;
+        // find the next off-diagonal element and continue until the tolerance is reached
+        max_val = largest_off_diagonal_element(A, k, l);
+    }
+
+    printf("number of iterations = %i \n", num_iter);
+
+    eigenvalues = A.diag();
+    arma::uvec sorted_indices = arma::sort_index(eigenvalues);
+    sorted_indices.print(std::cout);
+    eigenvalues = sort(eigenvalues);
+    eigenvectors = R;
+    int N = R.n_rows;
+    for (int i = 0; i < N; i++){
+        eigenvectors.col(i) = R.col(sorted_indices(i));
+    }
+}
+
