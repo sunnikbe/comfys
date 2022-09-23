@@ -5,6 +5,11 @@
 # Prerequisites
 *.d
 
+# TXT and pdfs
+*.txt
+*.pdf
+*
+
 # Compiled Object files
 *.slo
 *.lo
