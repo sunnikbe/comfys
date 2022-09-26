@@ -24,9 +24,10 @@ plt.plot(N_dense, N_poly_dense(N_dense), color = 'pink', label = 'Fitted line fo
 plt.scatter(N_dense, num_iter_dense, label = 'Datapoints for dense matrix')
 
 plt.title('N vs. iterations for the Jacobi rotation method')
-plt.xlabel('N [matrix A is NxN]')
+plt.xlabel('N')
 plt.ylabel('Number of iterations')
 plt.ylim([-10000, 250000])
+plt.yticks(rotation = 60)
 plt.legend()
 plt.savefig('nvsiter.pdf')
 
