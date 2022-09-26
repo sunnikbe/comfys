@@ -16,7 +16,7 @@ int main(){
 
     // Discretization with n = 10 steps and n = 100 steps
 
-    n = 10; // number of steps
+    n = 100; // number of steps
     N = n - 1; // interior points
     h = 1./n; // stepsize
 
@@ -31,27 +31,26 @@ int main(){
 
     // // Problem 5a,b) running jacobi_rotate with diagonal matrix and dense
     // // Writing to file
-    filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
-    ofile;
-    ofile.open(filename);
-
-    /*arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
-    for (int i: N_vals){
-        // problem 5a)
-        //arma::mat A = create_symmetric_tridiag(i, a, d);
-
-        // problem 5b)
-        arma::mat A = arma::mat(i, i).randn();
-        // Symmetrize the matrix by reflecting the upper triangle to lower triangle
-        A = arma::symmatu(A); // only for 5b
-        arma::mat R = arma::mat(i, i, arma::fill::eye);
-        jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
-
-        ofile << std::setw(3) << i
-        << std::setw(20) << std::scientific << num_iter
-        << std::endl;
-    }
-    ofile.close();*/
+    // filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
+    // ofile.open(filename);
+    //
+    // arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+    // for (int i: N_vals){
+    //     // problem 5a)
+    //     //arma::mat A = create_symmetric_tridiag(i, a, d);
+    //
+    //     // problem 5b)
+    //     arma::mat A = arma::mat(i, i).randn();
+    //     // Symmetrize the matrix by reflecting the upper triangle to lower triangle
+    //     A = arma::symmatu(A); // only for 5b
+    //     arma::mat R = arma::mat(i, i, arma::fill::eye);
+    //     jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
+    //
+    //     ofile << std::setw(3) << i
+    //     << std::setw(20) << std::scientific << num_iter
+    //     << std::endl;
+    // }
+    // ofile.close();
 
 
     // Problem 3b) test the largest off diagonal element function
@@ -70,17 +69,17 @@ int main(){
     printf("k = %i \n", k);
     printf("l = %i \n", l);
 
-    // problem 4
-    // create matrix R^(1) = I, R^(m) = S_m
-    N = 6;
-    arma::mat R = arma::mat(N,N,arma::fill::eye);
-    A = create_symmetric_tridiag(N,-1,2);
-    jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
-
-    printf("Eigenvalues:\n");
-    eigvals.print(std::cout);
-    printf("Eigenvectors as columns:\n");
-    eigvecs.print(std::cout);
+    // // problem 4
+    // // create matrix R^(1) = I, R^(m) = S_m
+    // N = 6;
+    // arma::mat R = arma::mat(N,N,arma::fill::eye);
+    // A = create_symmetric_tridiag(N,-1,2);
+    // jacobi_eigensolver(A,R,eigvecs,eigvals,max_iter,num_iter,epsilon);
+    //
+    // printf("Eigenvalues:\n");
+    // eigvals.print(std::cout);
+    // printf("Eigenvectors as columns:\n");
+    // eigvecs.print(std::cout);
 
     return 0;
 }
@@ -182,4 +181,3 @@ void jacobi_eigensolver(arma::mat &A, arma::mat& R, arma::mat& eigenvectors, arm
         eigenvectors.col(i) = R.col(sorted_indices(i));
     }
 }
-
