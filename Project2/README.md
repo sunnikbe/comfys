@@ -4,22 +4,22 @@
 
 ### Content
 
-The project contains two header files, two c++ files and two python files
+The project contains two header files, two c++ files and two python files  
 
-The two header files are
-    - tridiagonal.hpp
-    c++ code that creates a NxN symmetric tridiagonal matrix from the elements d on the diagonal and a on the sub- superdiagonal
+The two header files are  
+    - tridiagonal.hpp  
+    c++ code that creates a NxN symmetric tridiagonal matrix from the elements d on the diagonal and a on the sub- superdiagonal  
     
-    - analytical_eigen.hpp
-    c++ code that computes the eigenvalues and eigenvectors analytically for a symmetric tridiagonal matrix and then print then out to the terminal
+    - analytical_eigen.hpp  
+    c++ code that computes the eigenvalues and eigenvectors analytically for a symmetric tridiagonal matrix and then print then out to the terminal  
     
 The two c++ files are  
     - tridiag.cpp  
     c++ code that uses the tridiagonal.hpp to create a simple symmetric tridiagonal matrix and compares the eigenvalues and eigenvectors given
-    by the armadillo eig_sym function compared to the analytically computed eigenvalues and eigenvectors from analytical_eigen.hpp
+    by the armadillo eig_sym function compared to the analytically computed eigenvalues and eigenvectors from analytical_eigen.hpp  
     
     - main.cpp  
-    The main c++ program that solves the eigenfunction using the Jacobi rotate algorithm on a NxN symmetric tridiagonal matrix
+    The main c++ program that solves the eigenfunction using the Jacobi rotate algorithm on a NxN symmetric tridiagonal matrix  
     
 The python files are  
     - Nvsnum_iter.py  
@@ -27,7 +27,7 @@ The python files are
     for the data  
     
     -buckling_beam.py  
-    Plots the eigenvectors from the Jacobi rotate method for the three smallest eigenvalues as a function of position x
+    Plots the eigenvectors from the Jacobi rotate method for the three smallest eigenvalues as a function of position x  
 
 
 ### Compile and run code
