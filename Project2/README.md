@@ -4,13 +4,13 @@
 
 ### Content
 
-The project contains two header files, two c++ files and two python files  
+The project contains two header files, two c++ files and two python files  <\br>
 
-The two header files are  
-    - tridiagonal.hpp  
-    c++ code that creates a NxN symmetric tridiagonal matrix from the elements d on the diagonal and a on the sub- superdiagonal  
+The two header files are  <\br>
+    - tridiagonal.hpp  <\br>
+    c++ code that creates a NxN symmetric tridiagonal matrix from the elements d on the diagonal and a on the sub- superdiagonal  <\br>
     
-    - analytical_eigen.hpp  
+    - analytical_eigen.hpp  <\br>
     c++ code that computes the eigenvalues and eigenvectors analytically for a symmetric tridiagonal matrix and then print then out to the terminal  
     
 The two c++ files are  
