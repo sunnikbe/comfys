@@ -11,8 +11,8 @@ int main(){
     arma::vec eigvals;
     int max_iter = 100000;
     double epsilon = 1e-8;
-    int N,n,num_iter,k,l;
-    double h,a,d;
+    int N, n, num_iter, k, l;
+    double h, a, d;
 
     // Discretization with n = 10 steps and n = 100 steps
 
@@ -28,6 +28,10 @@ int main(){
     a = -1/h_sq;
     d = 2/h_sq;
     arma::mat A = create_symmetric_tridiag(N,a,d);
+    arma::mat R = arma::mat(N, N, arma::fill::eye);
+    jacobi_eigensolver(A, R, eigvecs, eigvals, max_iter, num_iter, epsilon);
+    eigvecs.save("eigenvectors.txt", arma::raw_ascii);
+    eigvals.save("eigenvalues.txt", arma::raw_ascii);
 
     // // Problem 5a,b) running jacobi_rotate with diagonal matrix and dense
     // // Writing to file
