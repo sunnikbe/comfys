@@ -7,7 +7,6 @@
 
     main.cpp
     g++ main.cpp src/*.cpp -I include -o main.exe -larmadillo
-    ./main.exxe
 
     tridiag.cpp
     g++ tridiag.cpp src/*.cpp -I include -o tridiag.exe -larmadillo
