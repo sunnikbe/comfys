@@ -38,10 +38,10 @@ int main(){
     // filename = "dense.txt"; // For 5a) "Nvsnum_iter.txt";
     // ofile.open(filename);
     //
-    // arma::vec N_vals = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500};
+    // arma::vec N_vals = {25, 50, 75, 100, 125, 150, 175, 200};
     // for (int i: N_vals){
     //     // problem 5a)
-    //     //arma::mat A = create_symmetric_tridiag(i, a, d);
+    //     // arma::mat A = create_symmetric_tridiag(i, a, d);
     //
     //     // problem 5b)
     //     arma::mat A = arma::mat(i, i).randn();
