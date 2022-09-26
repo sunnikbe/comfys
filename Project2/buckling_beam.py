@@ -24,7 +24,7 @@ v_n = 0
 
 
 # Plotting
-labels = ['Solution 1', 'Solution 2', 'Solution 3']
+labels = [fr'$\lambda_1$ = {lambdas[0]:.1f}', f'$\lambda_2$ = {lambdas[1]:.1f}', f'$\lambda_3$ = {lambdas[2]:.1f}']
 
 
 # This part shows how the solutions would have different lengths
@@ -48,4 +48,4 @@ plt.title(fr'Analytical eigenvectors $v_i$ vs. $\hatx_i$ for n = {n} steps')
 plt.xlabel(r'x $\in$ [0, 1]')
 plt.ylabel(r'$v_i$')
 plt.legend()
-plt.savefig('buckling_beams_n100.pdf')
+plt.savefig(f'buckling_beams_n{n}.pdf')
