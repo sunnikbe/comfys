@@ -16,10 +16,24 @@ public:
   std::vector<Particle> particles_;
 
   // Constructor
-  PenningTrap(double, double, double, std::vector<Particle>);
+  PenningTrap(double, double, double);
 
-  // Methods
-  std::vector<Particle> particles();
+  // Methods 
+  void add_particle(Particle particle_in);
+
+  arma::vec external_E_field(arma::vec r);
+
+  arma::vec external_B_field(arma::vec v);
+
+  arma::vec force_particle(int i, int j);
+
+  arma::vec total_force_external(int i);
+
+  arma::vec total_force_particle(int i);
+
+  arma::vec total_force(int i);
+
+
 
 };
 
