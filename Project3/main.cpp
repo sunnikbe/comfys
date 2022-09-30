@@ -1,4 +1,3 @@
-
 #include "Particle.hpp"
 
 int main()
