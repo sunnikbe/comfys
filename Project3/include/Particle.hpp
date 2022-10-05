@@ -5,6 +5,7 @@
 
 #include <armadillo>
 #include <string>
+#include <cmath>
 
 
 class Particle

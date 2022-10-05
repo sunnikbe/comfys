@@ -20,7 +20,7 @@ void PenningTrap::add_particle(Particle particle_in)
 arma::vec PenningTrap::external_E_field(arma::vec r)
 {
   arma::vec tmp = {1,1,-2};
-  return V0_/(d_*d_)*r*tmp;
+  return V0_/(d_*d_)*r%tmp;
 }
 
 // External magneticfield at point r
