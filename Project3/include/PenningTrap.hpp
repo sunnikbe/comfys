@@ -5,20 +5,21 @@
 
 #include <Particle.hpp>
 #include <vector>
+#include <cmath>
+#include <complex>
 
 
 class PenningTrap
 {
 public:
   double B0_; // magnetic field strength
-  double V0_; // applied potential
-  double d_; // characteristic dimension
+  double V0d_; // applied potential / characteristic dimension^2
   std::vector<Particle> particles_;
 
   // Constructor
-  PenningTrap(double, double, double);
+  PenningTrap(double B0_in, double V0d_in);
 
-  // Methods 
+  // Methods
   void add_particle(Particle particle_in);
 
   arma::vec external_E_field(arma::vec r);
@@ -33,7 +34,7 @@ public:
 
   arma::vec total_force(int i);
 
-
+  void evolve_fEuler(int i, arma::vec t, double h);
 
 };
 

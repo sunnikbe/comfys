@@ -2,11 +2,10 @@
 #include "Particle.hpp"
 
 // Constructor
-PenningTrap::PenningTrap(double B0_in, double V0_in, double d_in)
+PenningTrap::PenningTrap(double B0_in, double V0d_in)
 {
   B0_ = B0_in;
-  V0_ = V0_in;
-  d_ = d_in;
+  V0d_ = V0d_in;
 }
 
 // Methods returning member variable values
@@ -20,7 +19,7 @@ void PenningTrap::add_particle(Particle particle_in)
 arma::vec PenningTrap::external_E_field(arma::vec r)
 {
   arma::vec tmp = {1,1,-2};
-  return V0_/(d_*d_)*r%tmp;
+  return V0d_*r*tmp;
 }
 
 // External magneticfield at point r
@@ -68,4 +67,70 @@ arma::vec PenningTrap::total_force_particle(int i)
 arma::vec PenningTrap::total_force(int i)
 {
   return total_force_external(i) + total_force_particle(i);
+}
+
+// Evolve PenningTrap in time (Problem 7)
+// Runge-Kutta:
+
+
+// Forward Euler for particle i in PenningTrap:
+void PenningTrap::evolve_fEuler(int i, arma::vec t, double h)
+{
+  // From particles when put into penning trap
+  arma::vec r_i_0 = particles_.at(i).position();
+  arma::vec v_i_0 = particles_.at(i).velocity();
+  double q_i = particles_.at(i).charge();
+  double m_i = particles_.at(i).mass();
+
+  // Functions:
+      // f function
+      std::complex<double> f(double t);
+      {
+        double x_0 = r_i_0(0);
+        double z_0 = r_i_0(2);
+        double v_0 = v_i_0(1);
+        double w_0 = (q_i*B0_)/m_i;
+        double w_z_squared = ((2.*q_i)/(m_i))*V0d_;
+        double w_z = sqrt(w_z_squared);
+
+        double w_p = w_0/2. + sqrt(w_0*w_0 - 2*w_z_squared);
+        double w_m = w_0/2. - sqrt(w_0*w_0 - 2*w_z_squared);
+
+        double A_p = (v_0 + w_m*x_0)/(w_m - w_p);
+        double A_m = -(v_0 + w_p*x_0)/(w_m - w_p);
+
+        std::complex<double> J = sqrt(-1);
+
+        return A_p*exp(-J*w_p*t) + A_m*exp(-J*w_m*t);
+      }
+
+      // Y function, returns the new position vector
+      arma::vec Y(double t, arma::vec r_i, std::complex<double> f(double t));
+      {
+        double r_x = f(t).real();
+        double r_y = f(t).imag();
+        double r_z = z_0*cos(w_z*t);
+
+        return {r_x, r_y, r_z};
+      }
+
+  // Forward Euler:
+  arma::vec r_i = arma::vec(t.size()).zeros();
+  arma::vec v_i = arma::vec(t.size()).zeros();
+
+  // Initial conditions
+  r_i[0] = r_i_0;
+  v_i[0] = v_i_0;
+
+  // Forward Euler algorithm
+  for (int k = 1; k < t.size(); k++)
+  {
+    v_i[k + 1] = v_i[k] + h*Y(t[k], r_i(k), f(t[k]));
+    r_i[k + 1] = r_i[k] + h*v_i[k];
+  }
+
+  printf("Velocity:\n");
+  printf("Position:\n");
+  v_i.print(std::cout);
+  r_i.print(std::cout);
 }

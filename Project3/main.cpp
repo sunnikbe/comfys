@@ -8,7 +8,7 @@ int main()
   std::cout << particle_1.info();
 
   // create an instance of the PenningTrap class with name "trap"
-  PenningTrap trap = PenningTrap(96.5, 9.65*std::pow(10,8), std::pow(10,4));
+  PenningTrap trap = PenningTrap(96.5, 9.65);
   // add particle_1 into the trap
   trap.add_particle(particle_1);
 
@@ -25,6 +25,15 @@ int main()
   // test function that takes particle index input
   r_test = trap.total_force(0);
   r_test.print(std::cout);
+
+  // Testing the forward Euler:
+  int n = 10; // number of steps
+  int N = n - 1; // interior points
+  double h = 1./n; // stepsize
+
+  arma::vec t = arma::linspace(0, n, N);
+
+  trap.evolve_fEuler(0, t, h);
 
 
   return 0;
