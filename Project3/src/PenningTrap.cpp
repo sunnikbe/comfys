@@ -99,12 +99,12 @@ void PenningTrap::evolve_fEuler(int i, arma::vec t, double h)
   std::complex<double> J = sqrt(-1);
 
   // Forward Euler:
-  arma::vec r_i = arma::vec(t.size()).zeros();
-  arma::vec v_i = arma::vec(t.size()).zeros();
+  arma::mat r_i = arma::mat(3, t.size()).zeros();
+  arma::mat v_i = arma::mat(3, t.size()).zeros();
 
   // Initial conditions
-  r_i.col(0) = r_i_0;
-  v_i.col(0) = v_i_0;
+  r_i.row(0) = r_i_0;
+  v_i.row(0) = v_i_0;
 
   // Forward Euler algorithm
   for (int k = 1; k < t.size(); k++)
@@ -119,8 +119,8 @@ void PenningTrap::evolve_fEuler(int i, arma::vec t, double h)
     // Y function, position vector
     arma::vec Y = arma::vec("r_x r_y r_z");
 
-    v_i.col(k + 1) = v_i.col(k) + h*Y;
-    r_i.col(k + 1) = r_i.col(k) + h*v_i.col(k);
+    v_i.row(k + 1) = v_i.row(k) + h*Y;
+    r_i.row(k + 1) = r_i.row(k) + h*v_i.row(k);
   }
 
   printf("Velocity:\n");
