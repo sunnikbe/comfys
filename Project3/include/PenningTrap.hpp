@@ -34,7 +34,7 @@ public:
 
   arma::vec total_force(int i);
 
-  void evolve_fEuler(int i, arma::vec t, double h);
+  void evolve_fEuler(double dt);
 
 };
 

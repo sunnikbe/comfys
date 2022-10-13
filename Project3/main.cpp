@@ -27,14 +27,10 @@ int main()
   r_test.print(std::cout);
 
   // Testing the forward Euler:
-  int n = 10; // number of steps
-  int N = n - 1; // interior points
-  double h = 1./n; // stepsize
+  int n = 2; // number of steps
+  double dt = 1./n; // stepsize
 
-  arma::vec t = arma::linspace(0, n, N);
-
-  trap.evolve_fEuler(0, t, h);
-
+  trap.evolve_fEuler(dt);
 
   return 0;
 }

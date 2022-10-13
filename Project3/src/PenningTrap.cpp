@@ -74,60 +74,20 @@ arma::vec PenningTrap::total_force(int i)
 
 
 // Forward Euler for particle i in PenningTrap:
-void PenningTrap::evolve_fEuler(int i, arma::vec t, double h)
+void PenningTrap::evolve_fEuler(double dt)
 {
-  // From particles when put into penning trap
-  arma::vec r_i_0 = particles_.at(i).position();
-  arma::vec v_i_0 = particles_.at(i).velocity();
-  double q_i = particles_.at(i).charge();
-  double m_i = particles_.at(i).mass();
+  arma::mat v_new = arma::mat(3, particles_.size());
+  arma::mat r_new = arma::mat(3, particles_.size());
 
-  // for f function
-  double x_0 = r_i_0(0);
-  double z_0 = r_i_0(2);
-  double v_0 = v_i_0(1);
-  double w_0 = (q_i*B0_)/m_i;
-  double w_z_squared = ((2.*q_i)/(m_i))*V0d_;
-  double w_z = sqrt(w_z_squared);
-
-  double w_p = w_0/2. + sqrt(w_0*w_0 - 2*w_z_squared);
-  double w_m = w_0/2. - sqrt(w_0*w_0 - 2*w_z_squared);
-
-  double A_p = (v_0 + w_m*x_0)/(w_m - w_p);
-  double A_m = -(v_0 + w_p*x_0)/(w_m - w_p);
-
-  std::complex<double> J = sqrt(-1);
-
-  // Forward Euler:
-  arma::mat r_i = arma::mat(3, t.size()).zeros();
-  arma::mat v_i = arma::mat(3, t.size()).zeros();
-
-  // Initial conditions
-  r_i.col(0) = r_i_0;
-  v_i.col(0) = v_i_0;
-
-  // Forward Euler algorithm
-  for (int k = 1; k < t.size(); k++)
+  for (int i = 0; i < particles_.size(); i++)
   {
-    // f function
-    std::complex<double> f = A_p*exp(-J*w_p*t(k)) + A_m*exp(-J*w_m*t(k));
+    arma::vec v_i = particles_.at(i).velocity();
+    arma::vec r_i = particles_.at(i).position();
 
-    double r_x = f.real();
-    std::complex<double> r_y = f.imag();
-    double r_z = z_0*cos(w_z*t(k));
-
-    // Y function, position vector
-    arma::vec Y = arma::vec("r_x r_y r_z");
-
-    for (int n = 0; n == 2; n++)
-    {
-      v_i(n, k + 1) = v_i(n, k) + h*Y(n);
-      r_i(n, k + 1) = r_i(n, k) + h*v_i(n, k);
-    }
+    v_new.col(i) = v_i + dt*r_i;
+    r_new.col(i) = r_i + dt*v_i;
   }
-
-  printf("Velocity:\n");
-  printf("Position:\n");
-  v_i.print(std::cout);
-  r_i.print(std::cout);
+  printf("Particle n, v_new, r_new \n");
+  v_new.print(std::cout);
+  r_new.print(std::cout);
 }
