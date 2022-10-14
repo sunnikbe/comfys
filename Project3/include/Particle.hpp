@@ -25,7 +25,6 @@ class Particle
 
     // Method giving info
     std::string info();
-
 };
 
 #endif

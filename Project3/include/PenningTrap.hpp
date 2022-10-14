@@ -22,6 +22,14 @@ public:
   // Methods
   void add_particle(Particle particle_in);
 
+  arma::mat particles_r0();
+
+  arma::mat particles_v0();
+
+  arma::vec particles_q();
+
+  arma::vec particles_m();
+
   arma::vec external_E_field(arma::vec r);
 
   arma::vec external_B_field(arma::vec v);
@@ -30,11 +38,11 @@ public:
 
   arma::vec total_force_external(int i);
 
-  arma::vec total_force_particle(int i);
+  // arma::vec total_force_particle(int i);
+  //
+  // arma::vec total_force(int i);
 
-  arma::vec total_force(int i);
-
-  void evolve_fEuler(double dt);
+  void evolve_fEuler(double dt, arma::vec Y);
 
 };
 

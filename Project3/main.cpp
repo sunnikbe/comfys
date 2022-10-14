@@ -16,21 +16,33 @@ int main()
   Particle particle_2 = Particle(1.0, 0.1, arma::vec("3 2 1"), arma::vec("1 2 3"));
   trap.add_particle(particle_2);
 
-  // test values received from the functions in the PenningTrap class
-  // change the function name if needed to test the function
-  arma::vec r_test;
-  // test function that takes position vector inpuy
-  //r_test = trap.external_B_field(particle_1.position());
-
-  // test function that takes particle index input
-  r_test = trap.total_force(0);
-  r_test.print(std::cout);
+  // // test values received from the functions in the PenningTrap class
+  // // change the function name if needed to test the function
+  // arma::vec r_test;
+  // // test function that takes position vector inpuy
+  // //r_test = trap.external_B_field(particle_1.position());
+  //
+  // // test function that takes particle index input
+  // r_test = trap.total_force(0);
+  // r_test.print(std::cout);
 
   // Testing the forward Euler:
+//---------------------------------------
   int n = 2; // number of steps
+  int N = n - 1; // interior points
   double dt = 1./n; // stepsize
+  arma::vec t = arma::linspace(0, n, N); // makes t values with stepsize dt
 
-  trap.evolve_fEuler(dt);
+  //initial conditions:
+  arma::mat r_0 = trap.particles_r0();
+  arma::mat v_0 = trap.particles_v0();
+  arma::vec charges = trap.particles_q();
+  arma::vec masses = trap.particles_m();
+
+
+  arma::vec Y = arma::vec("0 1 2");
+
+  trap.evolve_fEuler(dt, Y);
 
   return 0;
 }
