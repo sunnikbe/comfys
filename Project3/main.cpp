@@ -3,9 +3,9 @@
 int main()
 {
   // Make a particle of type Particle(class) to test
-  Particle particle_1 = Particle(1.0, 0.2, arma::vec("1 2 3"), arma::vec("3 2 1"));
+  Particle particle_1 = Particle(1.0, 0.1, arma::vec("1 1 1"), arma::vec("1 1 1"));
   // printing info to test
-  std::cout << particle_1.info();
+  // std::cout << particle_1.info();
 
   // create an instance of the PenningTrap class with name "trap"
   PenningTrap trap = PenningTrap(96.5, 9.65);
@@ -13,7 +13,7 @@ int main()
   trap.add_particle(particle_1);
 
   // create a second particle and add it into the trap
-  Particle particle_2 = Particle(1.0, 0.1, arma::vec("3 2 1"), arma::vec("1 2 3"));
+  Particle particle_2 = Particle(2.0, 0.2, arma::vec("2 2 2"), arma::vec("2 2 2"));
   trap.add_particle(particle_2);
 
   // // test values received from the functions in the PenningTrap class
@@ -28,21 +28,17 @@ int main()
 
   // Testing the forward Euler:
 //---------------------------------------
-  int n = 2; // number of steps
+  int n = 4; // number of steps
   int N = n - 1; // interior points
   double dt = 1./n; // stepsize
   arma::vec t = arma::linspace(0, n, N); // makes t values with stepsize dt
 
-  //initial conditions:
-  arma::mat r_0 = trap.particles_r0();
-  arma::mat v_0 = trap.particles_v0();
-  arma::vec charges = trap.particles_q();
-  arma::vec masses = trap.particles_m();
+  arma::vec Y = arma::vec("10 3 2");
 
-
-  arma::vec Y = arma::vec("0 1 2");
-
-  trap.evolve_fEuler(dt, Y);
-
+  for (int i = 0; i <N; i++)
+  {
+    printf("timestep = %i:\n", i);
+    trap.evolve_fEuler(t(i), Y);
+  }
   return 0;
 }
