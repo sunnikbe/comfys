@@ -32,13 +32,15 @@ int main()
   int N = n - 1; // interior points
   double dt = 1./n; // stepsize
   arma::vec t = arma::linspace(0, n, N); // makes t values with stepsize dt
+  arma::vec timesteps = arma::vec(N).fill(dt); // evolves fEuler N times.
 
   arma::vec Y = arma::vec("10 3 2");
 
   for (int i = 0; i <N; i++)
   {
-    printf("timestep = %i:\n", i);
-    trap.evolve_fEuler(t(i), Y);
+    double f = t(i);
+    printf("t = %f:\n", f);
+    trap.evolve_fEuler(timesteps(i), Y);
   }
   return 0;
 }
