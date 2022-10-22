@@ -117,18 +117,18 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
 
     vec k1_v = dt*total_force(i,t,r,v,f,omega_v);
     vec k1_r = dt*v;
-
-    vec k2_v = dt*total_force(i,t+0.5*dt,r+0.5*k1_v,v+0.5*k1_v,f,omega_v);
-    vec k2_r = dt*(v + 0.5*k1_r);
-
-    vec k3_v = dt*total_force(i,t+0.5*dt,r+0.5*k2_v,v+0.5*k2_v,f,omega_v);
-    vec k3_r = dt*(v + 0.5*k2_r);
-
-    vec k4_v = dt*total_force(i,t+dt,r+k3_v,v+k3_v,f,omega_v);
-    vec k4_r = dt*(v + k3_r);
     
-    vec new_v = v + 1./6*(k1_v + 2*k2_v + 2*k3_v + k4_v)/m;
+    vec k2_r = dt*(v + 0.5*k1_r);
+    vec k2_v = dt*total_force(i,t+0.5*dt,r+0.5*k1_r,v+0.5*k1_v,f,omega_v);
+
+    vec k3_r = dt*(v + 0.5*k2_r);
+    vec k3_v = dt*total_force(i,t+0.5*dt,r+0.5*k2_r,v+0.5*k2_v,f,omega_v);
+
+    vec k4_r = dt*(v + k3_r);
+    vec k4_v = dt*total_force(i,t+dt,r+k3_r,v+k3_v,f,omega_v);
+    
     vec new_r = r + 1./6*(k1_r + 2*k2_r + 2*k3_r + k4_r); 
+    vec new_v = v + 1./6*(k1_v + 2*k2_v + 2*k3_v + k4_v)/m;
 
     Particle updated_ = Particle(q, m ,new_r, new_v);
 

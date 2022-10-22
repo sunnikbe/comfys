@@ -22,5 +22,8 @@ for i in range(M):
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
-plt.axis('equal')
+
+plt.figure()
+for i in range(M):
+    plt.plot(t,r[:,2+3*i])
 
