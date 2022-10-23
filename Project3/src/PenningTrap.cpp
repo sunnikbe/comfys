@@ -32,9 +32,7 @@ vec PenningTrap::external_E_field(double t, vec r, double f, double omega_v)
   // tmp vector to set V(x,y,z) = V0d*(x + y - 2z)
   vec tmp = {1,1,-2};
   vec E_field;
-  E_field = V0d_*r%tmp;
-  //std::cout << V0d_*r%tmp << std::endl;
-  /*if (time_dependent_potential_ == 1 && norm(r) < d_)
+  if (time_dependent_potential_ == 1 && norm(r) < d_)
   {
     E_field = V0d_*(1 + f*std::cos(omega_v*t))*r%tmp;
   }
@@ -45,8 +43,7 @@ vec PenningTrap::external_E_field(double t, vec r, double f, double omega_v)
   else
   {
     E_field = {0,0,0};
-    //std::cout << "|r| > d" << std::endl;
-  }*/
+  }
   return E_field;
 }
 
@@ -55,15 +52,13 @@ vec PenningTrap::external_B_field(vec v, vec r)
 {
   vec B_field;
   vec B = {0,0,B0_};
-  B_field = cross(v,B);
-  /*if (norm(r) < d_)
+  if (norm(r) < d_)
   {
     B_field = cross(v,B);
   }
   else{
     B_field = {0,0,0};
-  }*/
-  //std::cout << cross(v,B) << std::endl;
+  }
   return B_field;
 }
 
@@ -198,35 +193,6 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
     new_v = v.col(i) + 1./6*(k1_v.col(i) + 2*k2_v.col(i) + 2*k3_v.col(i) + k4_v.col(i));
     particles_.at(i) = Particle(q(i),m(i),new_r,new_v);
   }
-  
-
-  /*for (int i = 0; i < particles_.size(); i++)
-  {
-    double q = particles_.at(i).charge();
-    double m = particles_.at(i).mass();
-    vec v = particles_.at(i).velocity();
-    vec r = particles_.at(i).position();
-
-    vec k1_v = dt*total_force(i,t,r,v,f,omega_v);
-    vec k1_r = dt*v;
-    
-    vec k2_r = dt*(v + 0.5*k1_r);
-    vec k2_v = dt*total_force(i,t+0.5*dt,r+0.5*k1_r,v+0.5*k1_v,f,omega_v);
-
-    vec k3_r = dt*(v + 0.5*k2_r);
-    vec k3_v = dt*total_force(i,t+0.5*dt,r+0.5*k2_r,v+0.5*k2_v,f,omega_v);
-
-    vec k4_r = dt*(v + k3_r);
-    vec k4_v = dt*total_force(i,t+dt,r+k3_r,v+k3_v,f,omega_v);
-    
-    vec new_r = r + 1./6*(k1_r + 2*k2_r + 2*k3_r + k4_r); 
-    vec new_v = v + 1./6*(k1_v + 2*k2_v + 2*k3_v + k4_v)/m;
-
-    Particle updated_ = Particle(q, m ,new_r, new_v);
-
-    particles_.at(i) = updated_;
-    //std::cout << "Particle" << i << "\n" << particles_.at(i).info();
-  }*/
 }
 
 // Forward Euler for all particles in PenningTrap:
