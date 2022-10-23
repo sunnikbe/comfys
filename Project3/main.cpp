@@ -18,35 +18,80 @@ int main()
   PenningTrap trap = PenningTrap(B0, V0d, d, time_dependent_potential,
   use_Coulomb_interactions);
 
-  // problem 8 for testing the PenningTrap for two particles
+  // problem 8 for testing the PenningTrap for one and two particles
   // adding M particles to the trap
   r = {20,0,20};
   v = {0,25,0};
   Particle particle_1 = Particle(q,m,r,v);
   trap.add_particle(particle_1);
 
-  r = {25,25,0};
-  v = {0,40,5};
-  Particle particle_2 = Particle(q,m,r,v);
-  trap.add_particle(particle_2);
-
   int T = 50;
   double dt = 1e-3;
   int N = T/dt;
   arma::vec t = arma::linspace(0, T, N); // makes t values with stepsize dt
   arma::vec timesteps = arma::vec(N).fill(dt); // evolves fEuler N times.
-  std::string filename = "RK4.txt";
+  std::string filename_pos = "RK4_pos_single_particle.txt";
+  std::string filename_vel = "RK4_vel_single_particle.txt";
   //std::string filename = "fEuler.txt";
+  std::ofstream ofile_pos;
+  std::ofstream ofile_vel;
   // clears previous content from the file
-  std::ofstream ofile(filename);
+  ofile_pos.open(filename_pos, std::ofstream::out | std::ofstream::trunc);
+  ofile_vel.open(filename_vel, std::ofstream::out | std::ofstream::trunc);
 
-  trap.write_to_file(filename);
+  trap.write_to_file(filename_pos, filename_vel);
   for (int i = 1; i <N; i++)
   {
     double f = t(i);
     trap.evolve_RK4(t(i), timesteps(i));
-    trap.write_to_file(filename);
+    trap.write_to_file(filename_pos, filename_vel);
   }
+  ofile_pos.close();
+  ofile_vel.close();
+
+  particle_1 = Particle(q,m,r,v);
+  trap.update_particle(particle_1,0);
+  filename_pos = "fEuler_pos.txt";
+  filename_vel = "fEuler_vel.txt";
+  ofile_pos.open(filename_pos, std::ofstream::out | std::ofstream::trunc);
+  ofile_vel.open(filename_vel, std::ofstream::out | std::ofstream::trunc);
+
+  trap.write_to_file(filename_pos, filename_vel);
+  for (int i = 1; i <N; i++)
+  {
+    double f = t(i);
+    trap.evolve_fEuler(t(i), timesteps(i));
+    trap.write_to_file(filename_pos, filename_vel);
+  }
+  ofile_pos.close();
+  ofile_vel.close();
+
+  // two particle test
+
+  particle_1 = Particle(q,m,r,v);
+  trap.update_particle(particle_1,0);
+  
+  r = {25,25,0};
+  v = {0,40,5};
+  Particle particle_2 = Particle(q,m,r,v);
+  trap.add_particle(particle_2);
+
+  filename_pos = "RK4_pos.txt";
+  filename_vel = "RK4_vel.txt";
+  //std::string filename = "fEuler.txt";
+  // clears previous content from the file
+  ofile_pos.open(filename_pos, std::ofstream::out | std::ofstream::trunc);
+  ofile_vel.open(filename_vel, std::ofstream::out | std::ofstream::trunc);
+
+  trap.write_to_file(filename_pos, filename_vel);
+  for (int i = 1; i <N; i++)
+  {
+    double f = t(i);
+    trap.evolve_RK4(t(i), timesteps(i));
+    trap.write_to_file(filename_pos, filename_vel);
+  }
+  ofile_pos.close();
+  ofile_vel.close();
 
   // problem 9, not implemented correctly
   int M = 0;

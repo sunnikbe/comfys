@@ -21,24 +21,32 @@ void PenningTrap::add_particle(Particle particle_in)
   particles_.push_back(particle_in);
 }
 
+void PenningTrap::update_particle(Particle particle_in, int i)
+{
+  particles_.at(i) = particle_in;
+}
+
 // External electric field at point r
 vec PenningTrap::external_E_field(double t, vec r, double f, double omega_v)
 {
+  // tmp vector to set V(x,y,z) = V0d*(x + y - 2z)
   vec tmp = {1,1,-2};
   vec E_field;
+  E_field = V0d_*r%tmp;
   //std::cout << V0d_*r%tmp << std::endl;
-  if (time_dependent_potential_ == 1 && norm(r) > d_)
+  /*if (time_dependent_potential_ == 1 && norm(r) < d_)
   {
     E_field = V0d_*(1 + f*std::cos(omega_v*t))*r%tmp;
   }
-  else if (time_dependent_potential_ == 0 && norm(r) > d_)
+  else if (time_dependent_potential_ == 0 && norm(r) < d_)
   {
     E_field = V0d_*r%tmp;
   }
   else
   {
     E_field = {0,0,0};
-  }
+    //std::cout << "|r| > d" << std::endl;
+  }*/
   return E_field;
 }
 
@@ -47,35 +55,39 @@ vec PenningTrap::external_B_field(vec v, vec r)
 {
   vec B_field;
   vec B = {0,0,B0_};
-  if (norm(r) > d_)
+  B_field = cross(v,B);
+  /*if (norm(r) < d_)
   {
     B_field = cross(v,B);
   }
   else{
     B_field = {0,0,0};
-  }
+  }*/
   //std::cout << cross(v,B) << std::endl;
   return B_field;
 }
 
 // force on particle i from particle j
-vec PenningTrap::force_particle(int i, int j, vec r_i)
+vec PenningTrap::force_particle(int i, int j)
 {
   double k_e = 1.38935333*std::pow(10,5);
   double q_j = particles_.at(j).charge();
+  vec r_i = particles_.at(i).position();
   vec r_j = particles_.at(j).position();
   return k_e*q_j*(r_i-r_j)/std::pow(norm(r_i-r_j),3);
 }
 
 // total force on particle i from external forces
-vec PenningTrap::total_force_external(int i, double t, vec r_i, vec v_i, double f, double omega_v)
+vec PenningTrap::total_force_external(int i, double t, double f, double omega_v)
 {
   double q_i = particles_.at(i).charge();
-  return q_i*external_E_field(t,r_i,f,omega_v) + q_i*external_B_field(v_i, r_i);
+  vec r_i = particles_.at(i).position();
+  vec v_i = particles_.at(i).velocity();
+  return q_i*external_E_field(t,r_i,f,omega_v) + q_i*external_B_field(v_i,r_i);
 }
 
 // total force on particle i from other particles
-vec PenningTrap::total_force_particle(int i, vec r)
+vec PenningTrap::total_force_particle(int i)
 {
   vec F_particle = {0,0,0};
   double q_i = particles_.at(i).charge();
@@ -83,23 +95,23 @@ vec PenningTrap::total_force_particle(int i, vec r)
   {
     if (j != i)
     {
-      F_particle += q_i*force_particle(i,j,r);
+      F_particle += q_i*force_particle(i,j);
     }
   }
   return F_particle;
 }
 
 // Total force on particle i
-vec PenningTrap::total_force(int i, double t, vec r, vec v, double f, double omega_v)
+vec PenningTrap::total_force(int i, double t, double f, double omega_v)
 {
   vec F_tot;
   if (use_Coulomb_interactions_ == 1)
   {
-    F_tot = total_force_external(i,t,r,v,f,omega_v) + total_force_particle(i,r);
+    F_tot = total_force_external(i,t,f,omega_v) + total_force_particle(i);
   }
   else
   {
-    F_tot = total_force_external(i,t,r,v,f,omega_v);
+    F_tot = total_force_external(i,t,f,omega_v);
   }
   return F_tot;
 }
@@ -108,7 +120,87 @@ vec PenningTrap::total_force(int i, double t, vec r, vec v, double f, double ome
 // Runge-Kutta:
 void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
 {
+  int n = particles_.size();
+  vec q(n);
+  vec m(n);
+  mat r(3,n);
+  mat v(3,n);
+  for (int i = 0; i < n; i++)
+  {
+    q(i) = particles_.at(i).charge();
+    m(i) = particles_.at(i).mass();
+    r.col(i) = particles_.at(i).position();
+    v.col(i) = particles_.at(i).velocity();
+  }
+
+  mat k1_v(3,n);
+  mat k1_r(3,n);
+  // compute k1_r and k1_v
   for (int i = 0; i < particles_.size(); i++)
+  {
+    k1_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k1_r.col(i) = dt*v.col(i);
+  }
+  // update pos and vel for particles corresponding to k1_r and k1_v
+  for (int i = 0; i < n; i++)
+  {
+    vec v_k1 = particles_.at(i).velocity() + 0.5*k1_v.col(i);
+    vec r_k1 = particles_.at(i).position() + 0.5*k1_r.col(i);
+    particles_.at(i) = Particle(q(i),m(i),r_k1,v_k1);
+  }
+
+  mat k2_v(3,n);
+  mat k2_r(3,n);
+  // compute k2_r and k2_v
+  for (int i = 0; i < particles_.size(); i++)
+  {
+    k2_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k2_r.col(i) = dt*(v.col(i) + 0.5*k1_v.col(i));
+  }
+  // update pos and vel for particles corresponding to k2_r and k2_v
+  for (int i = 0; i < n; i++)
+  {
+    vec v_k2 = particles_.at(i).velocity() + 0.5*k2_v.col(i);
+    vec r_k2 = particles_.at(i).position() + 0.5*k2_r.col(i);
+    particles_.at(i) = Particle(q(i),m(i),r_k2,v_k2);
+  }
+
+  mat k3_v(3,n);
+  mat k3_r(3,n);
+  // compute k3_r and k3_v
+  for (int i = 0; i < particles_.size(); i++)
+  {
+    k3_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k3_r.col(i) = dt*(v.col(i) + 0.5*k2_v.col(i));
+  }
+  // update pos and vel for particles corresponding to k3_r and k3_v
+  for (int i = 0; i < n; i++)
+  {
+    vec v_k3 = particles_.at(i).velocity() + k3_v.col(i);
+    vec r_k3 = particles_.at(i).position() + k3_r.col(i);
+    particles_.at(i) = Particle(q(i),m(i),r_k3,v_k3);
+  }
+
+  mat k4_v(3,n);
+  mat k4_r(3,n);
+  // compute k4_r and k4_v
+  for (int i = 0; i < particles_.size(); i++)
+  {
+    k4_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k4_r.col(i) = dt*(v.col(i) + k3_v.col(i));
+  }
+
+  vec new_r, new_v;
+  // update new pos and vel for particles given ki_r and ki_v
+  for (int i = 0; i < n; i++)
+  {
+    new_r = r.col(i) + 1./6*(k1_r.col(i) + 2*k2_r.col(i) + 2*k3_r.col(i) + k4_r.col(i));
+    new_v = v.col(i) + 1./6*(k1_v.col(i) + 2*k2_v.col(i) + 2*k3_v.col(i) + k4_v.col(i));
+    particles_.at(i) = Particle(q(i),m(i),new_r,new_v);
+  }
+  
+
+  /*for (int i = 0; i < particles_.size(); i++)
   {
     double q = particles_.at(i).charge();
     double m = particles_.at(i).mass();
@@ -134,7 +226,7 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
 
     particles_.at(i) = updated_;
     //std::cout << "Particle" << i << "\n" << particles_.at(i).info();
-  }
+  }*/
 }
 
 // Forward Euler for all particles in PenningTrap:
@@ -150,7 +242,7 @@ void PenningTrap::evolve_fEuler(double t, double dt, double f, double omega_v)
     double m = particles_.at(i).mass();
     vec v = particles_.at(i).velocity();
     vec r = particles_.at(i).position();
-    vec F = total_force(i,t,r,v,f,omega_v);
+    vec F = total_force(i,t,f,omega_v);
 
     vec new_v = particles_.at(i).velocity() + dt*F/m;
     vec new_r = particles_.at(i).position() + dt*particles_.at(i).velocity();
@@ -158,21 +250,32 @@ void PenningTrap::evolve_fEuler(double t, double dt, double f, double omega_v)
     Particle updated_ = Particle(q, m, new_r, new_v);
 
     particles_.at(i) = updated_;
-    std::cout << "Particle " << i << ":\n" << particles_.at(i).info();
+    //std::cout << "Particle " << i << ":\n" << particles_.at(i).info();
   }
 }
 
-// write the positions into file
-void PenningTrap::write_to_file(std::string filename)
+// write the positions and velocities to file
+void PenningTrap::write_to_file(std::string filename_pos, std::string filename_vel)
 {
   // append new content to file instead of overwriting it
-  std::ofstream ofile(filename, std::ios::out | std::ios::app);
+  std::ofstream ofile_pos(filename_pos, std::ios::out | std::ios::app);
   for (int i = 0; i < particles_.size(); i++)
   {
     vec r = particles_.at(i).position();
-    ofile << std::setw(16) << std::scientific << r(0)
+    ofile_pos << std::setw(16) << std::scientific << r(0)
     << std::setw(16) << std::scientific << r(1)
     << std::setw(16) << std::scientific << r(2);
   }
-  ofile << std::endl;
+  ofile_pos << std::endl;
+
+  // write the velocities to file
+  std::ofstream ofile_vel(filename_vel, std::ios::out | std::ios::app);
+  for (int i = 0; i < particles_.size(); i++)
+  {
+    vec v = particles_.at(i).velocity();
+    ofile_vel << std::setw(16) << std::scientific << v(0)
+    << std::setw(16) << std::scientific << v(1)
+    << std::setw(16) << std::scientific << v(2);
+  }
+  ofile_vel << std::endl;
 }

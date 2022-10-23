@@ -31,23 +31,25 @@ public:
   // Methods
   void add_particle(Particle particle_in);
 
+  void update_particle(Particle particle_in, int i);
+
   arma::vec external_E_field(double t, arma::vec r, double f, double omega_v);
 
   arma::vec external_B_field(arma::vec v, arma::vec r);
 
-  arma::vec force_particle(int i, int j, arma::vec r_i);
+  arma::vec force_particle(int i, int j);
 
-  arma::vec total_force_external(int i, double t, arma::vec r, arma::vec v, double f, double omega_v);
+  arma::vec total_force_external(int i, double t, double f, double omega_v);
 
-  arma::vec total_force_particle(int i, arma::vec r);
+  arma::vec total_force_particle(int i);
   
-  arma::vec total_force(int i, double t, arma::vec r, arma::vec v, double f, double omega_v);
+  arma::vec total_force(int i, double t, double f, double omega_v);
 
   void evolve_RK4(double t, double dt, double f = 0, double omega_v = 0);
 
   void evolve_fEuler(double t, double dt, double f = 0, double omega_v = 0);
 
-  void write_to_file(std::string filename);
+  void write_to_file(std::string filename_pos, std::string filename_vel);
 
 };
 
