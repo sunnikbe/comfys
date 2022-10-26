@@ -15,13 +15,13 @@ The project contains one main c++ file, two c++ header files and one python file
     
     PenningTrap.cpp
     c++ program that calculates the force that affect a particle inside of a Penning trap and then evolves them using
-    Runge-Kutta4 and forward Euler. The class includes functions; write to file, compute with and without Coulomb interactions
-    or time dependent electric potential and also count how many particles remains inside the trap.
+    Runge-Kutta4 and forward Euler. The class includes functions; write to file, compute with and without
+    Coulomb interactions or time dependent electric potential and also count how many particles remains inside the trap.
     
     plots.py
     A python program that plots the results from main.cpp. Also includes functions to compute the analytically solution for 
-    the one particle Penning trap system, the relative error between the numerical approximations and analytical solution, as well
-    as compute the error convergence rate.
+    the one particle Penning trap system, the relative error between the numerical approximations and analytical solution,
+    as well as compute the error convergence rate.
     
 
 
