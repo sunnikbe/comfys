@@ -21,9 +21,24 @@ void PenningTrap::add_particle(Particle particle_in)
   particles_.push_back(particle_in);
 }
 
+// update a given particle inside the trap with a new Particle class
 void PenningTrap::update_particle(Particle particle_in, int i)
 {
   particles_.at(i) = particle_in;
+}
+
+// function that turns on or off the time dependent potential
+// false = off ; true = on
+void PenningTrap::time_dependent_potential(bool statement)
+{
+  time_dependent_potential_ = statement;
+}
+
+// function that turnson or off the Coulomb interactions
+// false = off ; true = on
+void PenningTrap::use_Coulomb_interactions(bool statement)
+{
+  use_Coulomb_interactions_ = statement;
 }
 
 // External electric field at point r
@@ -32,6 +47,8 @@ vec PenningTrap::external_E_field(double t, vec r, double f, double omega_v)
   // tmp vector to set V(x,y,z) = V0d*(x + y - 2z)
   vec tmp = {1,1,-2};
   vec E_field;
+  // check if time dependency is on
+  // or if the particle is still in the trap
   if (time_dependent_potential_ == 1 && norm(r) < d_)
   {
     E_field = V0d_*(1 + f*std::cos(omega_v*t))*r%tmp;
@@ -40,6 +57,7 @@ vec PenningTrap::external_E_field(double t, vec r, double f, double omega_v)
   {
     E_field = V0d_*r%tmp;
   }
+  // if not in the trap, set the electric field to zero
   else
   {
     E_field = {0,0,0};
@@ -52,10 +70,12 @@ vec PenningTrap::external_B_field(vec v, vec r)
 {
   vec B_field;
   vec B = {0,0,B0_};
+  // check if the particle is still in the trap
   if (norm(r) < d_)
   {
     B_field = cross(v,B);
   }
+  // if not set the magnetic field to zero
   else{
     B_field = {0,0,0};
   }
@@ -113,7 +133,7 @@ vec PenningTrap::total_force(int i, double t, double f, double omega_v)
 
 // Evolve PenningTrap in time (Problem 7)
 // Runge-Kutta:
-void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
+void PenningTrap::evolve_RK4(double dt, double t, double f, double omega_v)
 {
   int n = particles_.size();
   vec q(n);
@@ -149,7 +169,7 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
   // compute k2_r and k2_v
   for (int i = 0; i < particles_.size(); i++)
   {
-    k2_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k2_v.col(i) = dt*total_force(i,t+0.5*dt,f,omega_v)/m(i);
     k2_r.col(i) = dt*(v.col(i) + 0.5*k1_v.col(i));
   }
   // update pos and vel for particles corresponding to k2_r and k2_v
@@ -165,7 +185,7 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
   // compute k3_r and k3_v
   for (int i = 0; i < particles_.size(); i++)
   {
-    k3_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k3_v.col(i) = dt*total_force(i,t+0.5*dt,f,omega_v)/m(i);
     k3_r.col(i) = dt*(v.col(i) + 0.5*k2_v.col(i));
   }
   // update pos and vel for particles corresponding to k3_r and k3_v
@@ -181,7 +201,7 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
   // compute k4_r and k4_v
   for (int i = 0; i < particles_.size(); i++)
   {
-    k4_v.col(i) = dt*total_force(i,t,f,omega_v)/m(i);
+    k4_v.col(i) = dt*total_force(i,t+dt,f,omega_v)/m(i);
     k4_r.col(i) = dt*(v.col(i) + k3_v.col(i));
   }
 
@@ -196,7 +216,7 @@ void PenningTrap::evolve_RK4(double t, double dt, double f, double omega_v)
 }
 
 // Forward Euler for all particles in PenningTrap:
-void PenningTrap::evolve_fEuler(double t, double dt, double f, double omega_v)
+void PenningTrap::evolve_fEuler(double dt, double t, double f, double omega_v)
 {
   // Evolves v and r for all particles one timestep dt
   // f has to be a function where
@@ -221,27 +241,50 @@ void PenningTrap::evolve_fEuler(double t, double dt, double f, double omega_v)
 }
 
 // write the positions and velocities to file
+// if only one statement is given it will only write to that file
 void PenningTrap::write_to_file(std::string filename_pos, std::string filename_vel)
 {
   // append new content to file instead of overwriting it
-  std::ofstream ofile_pos(filename_pos, std::ios::out | std::ios::app);
-  for (int i = 0; i < particles_.size(); i++)
+  if (filename_pos != "none")
   {
-    vec r = particles_.at(i).position();
-    ofile_pos << std::setw(16) << std::scientific << r(0)
-    << std::setw(16) << std::scientific << r(1)
-    << std::setw(16) << std::scientific << r(2);
+    std::ofstream ofile_pos(filename_pos, std::ios::out | std::ios::app);
+    for (int i = 0; i < particles_.size(); i++)
+    {
+      vec r = particles_.at(i).position();
+      ofile_pos << std::setw(16) << std::scientific << r(0)
+      << std::setw(16) << std::scientific << r(1)
+      << std::setw(16) << std::scientific << r(2);
+    }
+    ofile_pos << std::endl;
   }
-  ofile_pos << std::endl;
 
   // write the velocities to file
-  std::ofstream ofile_vel(filename_vel, std::ios::out | std::ios::app);
+  if (filename_vel != "none")
+  {
+    std::ofstream ofile_vel(filename_vel, std::ios::out | std::ios::app);
+    for (int i = 0; i < particles_.size(); i++)
+    {
+      vec v = particles_.at(i).velocity();
+      ofile_vel << std::setw(16) << std::scientific << v(0)
+      << std::setw(16) << std::scientific << v(1)
+      << std::setw(16) << std::scientific << v(2);
+    }
+    ofile_vel << std::endl;
+  }
+}
+
+// function that checks how many particles are inside the trap
+// at the moment of the call
+int PenningTrap::particles_in_trap()
+{
+  int particles_inside = 0;
   for (int i = 0; i < particles_.size(); i++)
   {
-    vec v = particles_.at(i).velocity();
-    ofile_vel << std::setw(16) << std::scientific << v(0)
-    << std::setw(16) << std::scientific << v(1)
-    << std::setw(16) << std::scientific << v(2);
+    vec r_i = particles_.at(i).position();
+    if (norm(r_i) < d_)
+    {
+      particles_inside += 1;
+    }
   }
-  ofile_vel << std::endl;
+  return particles_inside;
 }
