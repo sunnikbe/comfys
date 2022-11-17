@@ -1,6 +1,6 @@
 
-#ifndef __Particle_hpp__
-#define __Particle_hpp__
+#ifndef __Isingmodel_hpp__
+#define __Isingmodel_hpp__
 
 #include <vector>
 #include <cmath>
