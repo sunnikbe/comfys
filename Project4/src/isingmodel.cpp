@@ -11,10 +11,6 @@ Isingmodel::Isingmodel(mat spin_in, double T_in, int seed_in)
     L = spin_in.n_rows; // number of particles along one side of the lattice
     E = compute_total_energy(spin);
     M = compute_total_magnetization(spin);
-    /*sE = 0;
-    sE2 = 0;
-    sM = 0;
-    sM2 = 0;*/
 
     uniform_int = uniform_int_distribution<int>(0,L-1);
     uniform_dist = uniform_real_distribution<double>(0.0,1.0);
@@ -80,10 +76,8 @@ void Isingmodel::MCMC(int index, int thread_id,int E_thread, int M_thread, int d
 mat spin_thread)
 {
     int N = L*L;
-    int iter = 0;
     for (int k = 0; k < N; k++)
     {
-        //cout << thread_num << endl;
         // change one of the spins
         int i = uniform_int(generator);
         int j = uniform_int(generator); 
@@ -101,49 +95,22 @@ mat spin_thread)
         }
         if (r <= prob[dE+8])
         {
-            iter += 1;
             spin_thread(i,j) *= -1;
             E_thread += dE;
             M_thread += 2*spin_thread(i,j);
-
-
-
-            #pragma omp master
-            {
-                //cout << E << "  " << dE << endl;
-            }
         }
-        #pragma omp master
-        {
-            //cout << E_thread << "  " << dE << endl;
-        }
-            E_mat(index,thread_id) += 1.0*E_thread/N;
-            EE_mat(index,thread_id) += 1.0*E_thread*E_thread/N;
-            M_mat(index,thread_id) += 1.0*fabs(M_thread)/N;
-            MM_mat(index,thread_id) += 1.0*M_thread*M_thread/N;
-        
-        /*sE += E;
-        sE2 += E*E;
-        sM += M;
-        sM2 += M*M;*/
-        //cout << thread_id << "  " << E << endl;
-    }
-    if (iter != 0)
-    {
-        //cout << iter << endl;
+        E_mat(index,thread_id) += 1.0*E_thread/N;
+        EE_mat(index,thread_id) += 1.0*E_thread*E_thread/N;
+        M_mat(index,thread_id) += 1.0*fabs(M_thread)/N;
+        MM_mat(index,thread_id) += 1.0*M_thread*M_thread/N;
     }
 }
 
 void Isingmodel::compute_expected_values(string filename, int cycles)
 {
-    double exp_val_epsilon = 0;
-    double exp_val_m = 0;
-    double exp_val_CV = 0;
-    double exp_val_xi = 0;
     #pragma omp parallel private(prob,generator)
     {    
         int N = L*L;
-        ofstream ofile(filename, std::ios::out | std::ios::app);
         int num_threads = omp_get_num_threads();  
         E_mat.zeros(cycles,num_threads);
         EE_mat.zeros(cycles,num_threads);
@@ -161,34 +128,9 @@ void Isingmodel::compute_expected_values(string filename, int cycles)
         }
         int thread_num = omp_get_thread_num();
         generator.seed(seed + thread_num);
-        //cout << thread_num << "  " << E_thread << "  " << M_thread << endl;
-
-        int l;
-        for (l = 0; l < cycles; l++) 
+        for (int l = 0; l < cycles; l++) 
         {
-            int n = l*N;
             MCMC(l,thread_num,E_thread,M_thread,dE,spin_thread);
-            #pragma omp master
-            {
-                //cout << E_mat(l,thread_num) << endl;
-            }
-            /*#pragma omp critical
-            {
-                cout << sE << endl;
-                exp_val_epsilon += sE/n/N;
-                exp_val_m += sM/n/N;
-                exp_val_CV += 1.0/N/T/T*(sE2/n - sE/n*sE/n);
-                exp_val_xi += 1.0/N/T*(sM2/n - sM/n*sM/n);
-            }
-            #pragma omp barrier
-            #pragma omp master
-            {
-                ofile << setw(6) << l <<
-                setw(15) << exp_val_epsilon <<
-                setw(15) << exp_val_m << 
-                setw(15) << exp_val_CV <<
-                setw(15) << exp_val_xi << endl;
-            }*/
         }
 
     }

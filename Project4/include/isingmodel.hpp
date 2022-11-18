@@ -1,6 +1,6 @@
 
-#ifndef __Particle_hpp__
-#define __Particle_hpp__
+#ifndef __isingmodel_hpp__
+#define __isingmodel_hpp__
 
 #include "omp.h"
 #include <vector>
