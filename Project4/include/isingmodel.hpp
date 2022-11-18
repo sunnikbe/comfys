@@ -2,6 +2,7 @@
 #ifndef __Particle_hpp__
 #define __Particle_hpp__
 
+#include "omp.h"
 #include <vector>
 #include <cmath>
 #include <complex>
@@ -11,33 +12,41 @@
 #include <iomanip>
 #include <math.h>
 #include <armadillo>
+#include <chrono>
 
 
 class Isingmodel
 {
-  public:
-    arma::mat spin;
-    double T,dE0,dE4p,dE4m,dE8p,dE8m;
-    int L,E_before,M;
-    std::mt19937 generator;
-    std::uniform_int_distribution<int> uniform_int;
-    std::uniform_real_distribution<double> uniform_dist;
+    public:
+        arma::mat spin,E_mat,M_mat,EE_mat,MM_mat;
+        double T,prob[17];
+        int L,E,M,seed;
 
-    // Constructor
-    Isingmodel(arma::mat, double, int);
 
-    // Methods
-    void print_state();
+        std::mt19937 generator;
+        std::uniform_int_distribution<int> uniform_int;
+        std::uniform_real_distribution<double> uniform_dist;
 
-    double compute_prob_factor(int delta_E);
+        // Constructor
+        Isingmodel(arma::mat, double, int);
 
-    int compute_total_energy(arma::mat spin);
+        // Methods
+        void print_state();
 
-    int compute_total_magnetization(arma::mat spin);
+        void set_spin_state(arma::mat spin_in);
 
-    void spin_candidate();
+        double compute_prob_factor(int delta_E);
 
-    void MarkovChainMonteCarlo(std::string filename, int iterations);
+        int compute_total_energy(arma::mat spin);
+
+        int compute_total_magnetization(arma::mat spin);
+
+        int compute_delta_E(int i, int j, arma::mat spin_in);
+
+        void MCMC(int index, int thread_id, int E_thread, int M_thread, int dE,
+        arma::mat spin_thread);
+
+        void compute_expected_values(std::string filename, int cycles);
 
 };
 
