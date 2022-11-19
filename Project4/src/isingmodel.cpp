@@ -9,19 +9,15 @@ Isingmodel::Isingmodel(mat spin_in, double T_in, int seed_in)
     spin = spin_in;
     T = T_in;
     L = spin_in.n_rows; // number of particles along one side of the lattice
-    E_before = compute_total_energy(spin);
+    E = compute_total_energy(spin);
+    M = compute_total_magnetization(spin);
 
-    // generate the RNGs used, the int RNG is for picking new spin states
-    // and the real RNG is for accepting the new spin state
-    generator.seed(seed_in);
     uniform_int = uniform_int_distribution<int>(0,L-1);
     uniform_dist = uniform_real_distribution<double>(0.0,1.0);
+    seed = chrono::system_clock::now().time_since_epoch().count();
 
-    // compute exponentials
-    dE4p = exp(4/T);
-    dE4m = exp(-4/T);
-    dE8p = exp(8/T);
-    dE8m = exp(-8/T);
+    for(int dE = -8; dE <= 8; dE++) prob[dE+8] = 0;
+    for(int dE = -8; dE <= 8; dE+=4) prob[dE+8] = exp(-dE/T);
 }
 
 // print out the current spin state
@@ -30,38 +26,12 @@ void Isingmodel::print_state()
     spin.print(cout);
 }
 
-// compute which probability factor used for acceptance
-double Isingmodel::compute_prob_factor(int delta_E)
+void Isingmodel::set_spin_state(mat spin_in)
 {
-    double p_div = 0;
-    if (fabs(delta_E) == 8)
-    {
-        if (delta_E > 0)
-        {
-            p_div = dE8m;
-        }
-        else
-        {
-            p_div = dE8p;
-        }
-    }
-    if (fabs(delta_E) == 4)
-    {
-        if (delta_E > 0)
-        {
-            p_div = dE4m;
-        }
-        else
-        {
-            p_div = dE4p;
-        }
-    }
-    if (delta_E == 0)
-    {
-        p_div = 1;
-    }
-    return p_div;
+    spin = spin_in;
 }
+
+
 
 // compute the total energy of the input spin state
 int Isingmodel::compute_total_energy(mat spin_)
@@ -92,49 +62,91 @@ int Isingmodel::compute_total_magnetization(mat spin_)
     return M;
 }
 
-// check if the new spin candidate is accepted or not
-void Isingmodel::spin_candidate()
+int Isingmodel::compute_delta_E(int i, int j, mat spin_in)
 {
-    // change one of the spins
-    int i = uniform_int(generator);
-    int j = uniform_int(generator); 
-    // value between 0 and 1 that decides
-    // if the spin candidate is accepted
-    double r = uniform_dist(generator);
-    mat spin_new = spin;
-    spin_new(i,j) = -spin(i,j); // new spin candidate
-
-    // compute the difference in total energy delta_E = E_spin_candidate - E_old_spin
-    int E_after = compute_total_energy(spin_new);
-    int dE = E_after - E_before;
-    double p = compute_prob_factor(dE);
-    double A = min(1.0,p);
-
-    if (r <= A)
-    {
-        spin = spin_new;
-        E_before = E_after;
-    }
+    return 2*spin_in(i,j) *
+    (spin_in((i+1)%L,j) + spin_in(i,(j+1)%L) +
+    spin_in(((i-1)%L+L)%L,j) + spin_in(i,((j-1)%L+L)%L));
 }
 
 // Run input amount of MarkovChainMonteCarlo iterations with each MCMC iterations being
 // N spin changes, where N is total amount of spins in the system
 // writes out the energy per spin and magnetization per spin to file
-void Isingmodel::MarkovChainMonteCarlo(string filename, int iterations)
+void Isingmodel::MCMC(int index, int thread_id,int E_thread, int M_thread, int dE,
+mat spin_thread)
 {
     int N = L*L;
-    double epsilon = 1.0*E_before/N;
-    double m = 1.0*fabs(compute_total_magnetization(spin))/N;
-    ofstream ofile(filename, std::ios::out | std::ios::app);
-    ofile << setw(5) << epsilon << setw(15) << m << endl;
-    for (int i = 0; i < N; i++)
+    for (int k = 0; k < N; k++)
     {
-        for (int j = 0; j < iterations; j++)
+        // change one of the spins
+        int i = uniform_int(generator);
+        int j = uniform_int(generator); 
+        // value between 0 and 1 that decides
+        // if the spin candidate is accepted
+        double r = uniform_dist(generator);
+
+        dE = compute_delta_E(i,j,spin_thread);
+        if (fabs(dE) != 8 && fabs(dE) != 4 && dE != 0)
         {
-        spin_candidate();
-        epsilon = 1.0*E_before/N;
-        m = 1.0*fabs(compute_total_magnetization(spin))/N;
-        ofile << setw(5) << epsilon << setw(15) << m << endl;
+            #pragma omp master
+            {
+                cout << dE << "  " << i << "  " << j << endl;
+            }
         }
+        if (r <= prob[dE+8])
+        {
+            spin_thread(i,j) *= -1;
+            E_thread += dE;
+            M_thread += 2*spin_thread(i,j);
+        }
+        E_mat(index,thread_id) += 1.0*E_thread/N;
+        EE_mat(index,thread_id) += 1.0*E_thread*E_thread/N;
+        M_mat(index,thread_id) += 1.0*fabs(M_thread)/N;
+        MM_mat(index,thread_id) += 1.0*M_thread*M_thread/N;
     }
+}
+
+void Isingmodel::compute_expected_values(string filename, int cycles)
+{
+    #pragma omp parallel private(prob,generator)
+    {    
+        int N = L*L;
+        int num_threads = omp_get_num_threads();  
+        E_mat.zeros(cycles,num_threads);
+        EE_mat.zeros(cycles,num_threads);
+        M_mat.zeros(cycles,num_threads);
+        MM_mat.zeros(cycles,num_threads);
+
+        int E_thread,M_thread;
+        int dE = 0;
+        mat spin_thread;
+        #pragma omp critical
+        {
+            E_thread = E;
+            M_thread = M;
+            spin_thread = spin;
+        }
+        int thread_num = omp_get_thread_num();
+        generator.seed(seed + thread_num);
+        for (int l = 0; l < cycles; l++) 
+        {
+            MCMC(l,thread_num,E_thread,M_thread,dE,spin_thread);
+        }
+
+    }
+    E_mat.save("E_mat.txt",raw_ascii);
+    EE_mat.save("EE_mat.txt",raw_ascii);
+    M_mat.save("M_mat.txt",raw_ascii);
+    MM_mat.save("MM_mat.txt",raw_ascii);
+    //E_mat.print(cout);
+    cout << endl;
+    int N_part = L*L;
+    int n_threads = omp_get_max_threads();
+    //cout << n_threads << endl;
+    cout << sum(E_mat,0)/cycles/N_part << endl;
+    cout << accu(E_mat)/cycles/N_part/n_threads << endl;
+    cout << endl;
+    cout << sum(M_mat,0)/cycles/N_part << endl;
+    cout << accu(M_mat)/cycles/N_part/n_threads << endl;
+
 }
