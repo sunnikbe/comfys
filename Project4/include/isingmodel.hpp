@@ -21,14 +21,14 @@ class Isingmodel
         arma::mat spin,E_mat,M_mat,EE_mat,MM_mat;
         double T,prob[17];
         int L,E,M,seed;
-
+        bool ordered;
 
         std::mt19937 generator;
-        std::uniform_int_distribution<int> uniform_int;
+        std::uniform_int_distribution<int> uniform_int,spin_dist;
         std::uniform_real_distribution<double> uniform_dist;
 
         // Constructor
-        Isingmodel(arma::mat, double, int);
+        Isingmodel(double, int, int, bool ordered = true);
 
         // Methods
         void print_state();
@@ -43,10 +43,7 @@ class Isingmodel
 
         int compute_delta_E(int i, int j, arma::mat spin_in);
 
-        void MCMC(int index, int thread_id, int E_thread, int M_thread, int dE,
-        arma::mat spin_thread);
-
-        void compute_expected_values(std::string filename, int cycles);
+        void mcmc(std::string filename, int cycles, int burn_in = 0, bool mat_form = true);
 
 };
 
