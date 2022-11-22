@@ -9,7 +9,7 @@ int main(int argc, const char* argv[])
     if (argc == 1)
     {
         omp_set_num_threads(1); // number of threads you want to use
-        int cycles_per_thread = 1e5; // cycles per thread per mcmc cycle
+        int cycles_per_thread = 1e6; // cycles per thread per mcmc cycle
         int seed = chrono::system_clock::now().time_since_epoch().count();
 
         double T = 1.0; // declare the temperature in units [J/k_B]
@@ -25,6 +25,8 @@ int main(int argc, const char* argv[])
         // omp_set_num_thread(N) command where N is number of threads
         model.mcmc(filename,cycles_per_thread);
 
+        // compute energies and magnetization for T = 1.0 and T = 2.4
+        // for ordered and unordered starting spin configurations
         string filename_1 = "set1_0_ordered";
         string filename_2 = "set1_0_unordered";
         string filename_3 = "set2_4_ordered";
@@ -40,10 +42,26 @@ int main(int argc, const char* argv[])
         model1_0_unordered.mcmc(filename_2,cycles_per_thread);
         model2_4_ordered.mcmc(filename_3,cycles_per_thread);
         model2_4_unordered.mcmc(filename_4,cycles_per_thread);
+
+        // compute one million MCMC samples for temperatures T = 1.0 and T = 2.4
+        // for ordered starting spin configurations
+        string filenamehist1 = "hist_1_0";
+        string filenamehist2 = "hist_2_4";
+        cycles_per_thread = 1e6;
+        Isingmodel model1 = Isingmodel(1.0,L,seed);
+        Isingmodel model2 = Isingmodel(2.4,L,seed);
+        model1.mcmc(filenamehist1,cycles_per_thread);
+        model2.mcmc(filenamehist2,cycles_per_thread);
         
         return 0;
     }
 
+    // Compute energy, magnetization, heat capacity and susceptiblity with the given inputs
+    // lattice size L, cycles per thread, burn-in, number of temp steps,
+    // number of threads and filename.
+    // will use unordered starting spin configurations
+    // and will accumulate all the sampled values up to the final cycle
+    // with temperatures from 2.1 to 2.4
     if (argc == 7)
     {
         int L = atoi(argv[1]); // lattice size

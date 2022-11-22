@@ -31,20 +31,11 @@ class Isingmodel
         Isingmodel(double, int, int, bool ordered = true);
 
         // Methods
-        void print_state();
-
-        void set_spin_state(arma::mat spin_in);
-
-        double compute_prob_factor(int delta_E);
-
         int compute_total_energy(arma::mat spin);
 
         int compute_total_magnetization(arma::mat spin);
 
-        int compute_delta_E(int i, int j, arma::mat spin_in);
-
         void mcmc(std::string filename, int cycles, int burn_in = 0, bool mat_form = true);
-
 };
 
 #endif
