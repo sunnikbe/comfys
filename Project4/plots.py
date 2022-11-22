@@ -116,11 +116,11 @@ plt.plot(1/L,alpha*T_c_L+T_c)"""
 
 T = 1.0
 N = 4
-Z = 2*np.exp(8*T)+2*np.exp(-8*T) + 12
-E = 1/Z*(-2*8*np.exp(8*T)+2*8*np.exp(-8*T)) 
-E2 = 1/Z*(2*(-8)**2*np.exp(8*T)+2*8**2*np.exp(-8*T))
-M = 1/Z*(2*4*np.exp(8*T))
-M2 = 1/Z*(2*4**2*np.exp(8*T))
+Z = 2*np.exp(8/T)+2*np.exp(-8/T) + 12
+E = 1/Z*(-2*8*np.exp(8/T)+2*8*np.exp(-8/T)) 
+E2 = 1/Z*(2*(-8/T)**2*np.exp(8/T)+2*8**2*np.exp(-8/T))
+M = 1/Z*(2*4*np.exp(8/T)+8*2)
+M2 = 1/Z*(2*4**2*np.exp(8/T)+8*2**2)
 
 print(E,E2,M,M2)
 
@@ -129,8 +129,8 @@ m = M/N
 
 print(eps,m)
 
-CV = 1/N/T**2*(E2 - E**2)
-Xi = 1/N/T*(M2 - M**2)
+CV = (E2 - E**2)/N/T/T
+Xi = (M2 - M**2)/N/T
 
 print(CV,Xi)
 

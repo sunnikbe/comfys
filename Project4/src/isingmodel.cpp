@@ -115,24 +115,20 @@ void Isingmodel::mcmc(string filename, int cycles, int burn_in, bool mat_form)
                 // if the spin candidate is accepted
                 double r = uniform_dist(generator);
 
-                dE = compute_delta_E(i,j,spin_thread);
-                if (fabs(dE) != 8 && fabs(dE) != 4 && dE != 0)
-                {
-                    #pragma omp master
-                    {
-                        cout << dE << "  " << i << "  " << j << endl;
-                    }
-                }
+                //dE = compute_delta_E(i,j,spin_thread);
+                dE = 2*spin_thread(i,j) *
+                    (spin_thread((i+1)%L,j) + spin_thread(i,(j+1)%L) +
+                    spin_thread(((i-1)%L+L)%L,j) + spin_thread(i,((j-1)%L+L)%L));
                 if (r <= prob[dE+8])
                 {
                     spin_thread(i,j) *= -1;
                     E_thread += dE;
                     M_thread += 2*spin_thread(i,j);
                 }
-                E_mat(l,thread_num) += 1.0*E_thread/N;
-                EE_mat(l,thread_num) += 1.0*E_thread*E_thread/N;
-                M_mat(l,thread_num) += 1.0*fabs(M_thread)/N;
-                MM_mat(l,thread_num) += 1.0*M_thread*M_thread/N;
+                E_mat(l,thread_num) += E_thread;
+                EE_mat(l,thread_num) += E_thread*E_thread;
+                M_mat(l,thread_num) += fabs(M_thread);
+                MM_mat(l,thread_num) += M_thread*M_thread;
             }
         }
 
@@ -144,7 +140,7 @@ void Isingmodel::mcmc(string filename, int cycles, int burn_in, bool mat_form)
         M_mat.save("M_mat_"+filename+".txt",raw_ascii);
         MM_mat.save("MM_mat_"+filename+".txt",raw_ascii);
     }
-    int N_part = L*L;
+    int N = L*L;
     int n_threads = omp_get_max_threads();
     double E = 0;
     double EE = 0;
@@ -158,15 +154,18 @@ void Isingmodel::mcmc(string filename, int cycles, int burn_in, bool mat_form)
         MM += sum(MM_mat.row(i))/n_threads;
     }
     int ns = cycles-burn_in;
-    E = E/ns;
-    EE = EE/ns;
-    M = M/ns;
-    MM = MM/ns;
+    E = 1.0*E/ns/N;
+    EE = 1.0*EE/ns/N;
+    M = 1.0*M/ns/N;
+    MM = 1.0*MM/ns/N;
 
-    double eps = E/N_part;
-    double m = M/N_part;
-    double CV = 1.0/N_part/T/T*(EE - E*E);
-    double xi = 1.0/N_part/T*(MM - M*M);
+    double eps = E/N;
+    double m = M/N;
+
+    double Evar = (EE - E*E)/N;
+    double Mvar = (MM - M*M)/N;
+    double CV = Evar/T/T;
+    double xi = Mvar/T;
     if (mat_form == 0)
     {
         ofstream ofile(filename, std::ios::out | std::ios::app);
@@ -182,7 +181,7 @@ void Isingmodel::mcmc(string filename, int cycles, int burn_in, bool mat_form)
     cout << "Epsilon = " << eps << endl;
     cout << "m = " << m << endl;
     cout << "C_V = " << CV << endl;
-    cout << "Xi = " << xi << endl;
+    cout << "chi = " << xi << endl;
     cout << endl;
 
 }

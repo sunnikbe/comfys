@@ -44,13 +44,14 @@ int main(int argc, const char* argv[])
         return 0;
     }
 
-    if (argc == 6)
+    if (argc == 7)
     {
         int L = atoi(argv[1]); // lattice size
         int cycles_per_thread = atoi(argv[2]); // cycles per MCMC attempt
-        int number_of_temp_steps = atoi(argv[3]); // number of steps for the temperature
-        int number_of_threads = atoi(argv[4]); // amount of threads used
-        string filename = argv[5]; // name of file the data is written to
+        int burn_in = atoi(argv[3]); // burn-in cycles we want to skip
+        int number_of_temp_steps = atoi(argv[4]); // number of steps for the temperature
+        int number_of_threads = atoi(argv[5]); // amount of threads used
+        string filename = argv[6]; // name of file the data is written to
         ofstream ofile;
         // overwrite any data from file with same name
         ofile.open(filename, std::ofstream::out | std::ofstream::trunc);
@@ -64,7 +65,7 @@ int main(int argc, const char* argv[])
         for (double Ts : temps)
         {
             Isingmodel model = Isingmodel(Ts,L,seed,false);
-            model.mcmc(filename,cycles_per_thread,100,false);
+            model.mcmc(filename,cycles_per_thread,burn_in,false);
         }
         ofile.close();
 
