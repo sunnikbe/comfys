@@ -89,4 +89,9 @@ int main(int argc, const char* argv[])
 
         return 0;
     }
+    else
+    {
+        cout << "need either none or six arguments" << endl;
+        exit(1);      
+    }
 }
