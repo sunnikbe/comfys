@@ -18,17 +18,27 @@
 class Slit_simulation
 {
     public:
-        int M,N;
-        double h,dt;
+        int M,N,n;
+        double h,dt,T;
+        std::complex<double> r;
         arma::cx_mat A,B;
+        arma::cx_vec a;
+        arma::cx_vec b;
         arma::mat V;
         arma::cx_vec u;
         arma::vec x,y;
+        arma::cx_cube U;
 
         //constructor
-        Slit_simulation(int M_in, double h_in, double dt_in);
+        Slit_simulation(int M_in, double h_in, double dt_in, double T_in);
 
         //methods
+        void print_u();
+
+        void print_norm();
+
+        void print_U();
+
         arma::cx_mat create_diagonal_matrix(arma::cx_vec d, std::complex<double> r);
 
         int find_k(int i, int j);
@@ -37,7 +47,13 @@ class Slit_simulation
 
         void find_A_and_B();
 
+        void normalise_u();
+
+        void update_U(int slice);
+
         void initial_state(double xc, double yc, double px, double py, double sigmax, double sigmay);
+
+        arma::cx_vec compute_b();
 
         void evolve_next_time_step();
 };
