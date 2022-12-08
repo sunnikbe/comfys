@@ -33,20 +33,20 @@ void Slit_simulation::print_U()
 
 void Slit_simulation::print_norm()
 {
-    cout << sum(cdot(conj(u),u)) << endl;
-    cout << endl;
+    cout << cdot(u,u) << endl;
 }
 
-cx_mat Slit_simulation::create_diagonal_matrix(cx_vec d, complex<double> r)
+sp_cx_mat Slit_simulation::create_diagonal_matrix(cx_vec d, complex<double> r)
 {
     cx_vec r_vec(N-1, fill::value(r));
-    for (int i = 2; i < N-1; i += 3)
+    for (int i = M-3; i < N-1; i += M-2)
     {
         r_vec(i) = 0;
     }
-    cx_mat diag_mat = diagmat(d);
-    diag_mat.diag(3) += r;
-    diag_mat.diag(-3) += r;
+    sp_cx_mat diag_mat(N,N);
+    diag_mat.diag(0) = d;
+    diag_mat.diag(M-2) += r;
+    diag_mat.diag(-(M-2)) += r;
     diag_mat.diag(1) = r_vec;
     diag_mat.diag(-1) = r_vec;
     return diag_mat;
@@ -74,7 +74,7 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
                 {
                     if (y(j) >= s0 || y(j) <= s1)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                 }
             }
@@ -94,11 +94,11 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
                 {
                     if (y(j) <= s0 && y(j) >= s1)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                     if (y(j) >= s2 || y(j) <= s3)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                 }
             }
@@ -120,15 +120,15 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
                 {
                     if (y(j) <= s0 && y(j) >= s1)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                     if (y(j) <= s2 && y(j) >= s3)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                     if (y(j) >= s4 || y(j) <= s5)
                     {
-                        V(j,i) = V0;
+                        V(i,j) = V0;
                     }
                 }
             }
@@ -139,28 +139,19 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
 
 void Slit_simulation::find_A_and_B()
 {
-    r = 1i*dt/(2*h*h);
+    r = 1.0i*dt/double(2)/h/h;
     for (int j = 0; j < M-2; j++)
     {
         for (int i = 0; i < M-2; i++)
         {
             int k = find_k(i,j);
+            //cout << k << "  " << i << "  " << j << endl;
             a(k) = double(1) + double(4)*r + 1i*dt/double(2)*V(i+1,j+1);
-            b(k) = double(1) - double(4)*r + 1i*dt/double(2)*V(i+1,j+1);
+            b(k) = double(1) - double(4)*r - 1i*dt/double(2)*V(i+1,j+1);
         }
     }
     A = create_diagonal_matrix(a,-r);
     B = create_diagonal_matrix(b,r);
-    /*A.print(cout);
-    cout << "\n\n\n" << endl;
-    B.print(cout);*/
-}
-
-void Slit_simulation::normalise_u()
-{
-    cx_vec u_conj = conj(u);
-    complex<double> norm = sum(cdot(conj(u),u));
-    u = u/sqrt(norm);
 }
 
 void Slit_simulation::update_U(int slice)
@@ -170,7 +161,7 @@ void Slit_simulation::update_U(int slice)
         for (int i = 1; i < M-1; i++)
         {
             int k = find_k(i-1,j-1);
-            U(i,j,slice) = u(k);
+            U(j,i,slice) = u(k);
         }
     }
 }
@@ -186,41 +177,22 @@ void Slit_simulation::initial_state(double xc, double yc, double px, double py, 
             + 1i*px*((x(i)-xc)) + 1i*py*(y(j)-yc));
         }
     }
-    normalise_u();
-    print_norm();
-
-    U.zeros(M,M,n);
+    complex<double> norm = cdot(u,u);
+    u = u/sqrt(norm);
+    U.zeros(M,M,n+1);
     update_U(0);
-    //u = normalise(u);
-}
-
-cx_vec Slit_simulation::compute_b()
-{
-    cx_vec b_vec(N, fill::zeros);
-    for (int i = 0; i < N; i += 3)
-    {
-        b_vec(i) = (b(i) + double(3)*r)*u(i);
-        b_vec(i+1) = (b(i+1) + double(4)*r)*u(i+1);
-        b_vec(i+2) = (b(i+2) + double(3)*r)*u(i+2);
-    }
-    b_vec(0) -= r*u(0);
-    b_vec(1) -= r*u(1);
-    b_vec(2) -= r*u(2);
-    b_vec(N-3) -= r*u(N-3);
-    b_vec(N-2) -= r*u(N-2);
-    b_vec(N-1) -= r*u(N-1);
-
-    return b_vec;
 }
 
 void Slit_simulation::evolve_next_time_step()
 {
-    for (int i = 0; i < n; i++)
+    find_A_and_B();
+    superlu_opts opts;
+    opts.symmetric = true;
+    for (int i = 0; i <= n; i++)
     {
         cx_vec b_vec = B*u;
-        //cx_vec b_vec = compute_b();
-        u = solve(A,b_vec, solve_opts::likely_sympd);
+        spsolve(u,A,b_vec, "superlu", opts);
         update_U(i);
     }
-    U.save("Output.dat",raw_ascii);
+    U.save("Output.bin",arma_binary);
 }
