@@ -179,15 +179,15 @@ void Slit_simulation::compute_potential()
 
 void Slit_simulation::find_A_and_B()
 {
-    r = 1.0i*dt/double(2)/h/h;
+    r = 1.0i*dt/2.0/h/h;
     for (int j = 0; j < M-2; j++)
     {
         for (int i = 0; i < M-2; i++)
         {
             int k = find_k(i,j);
             //cout << k << "  " << i << "  " << j << endl;
-            a(k) = double(1) + double(4)*r + 1i*dt/double(2)*V(j+1,i+1);
-            b(k) = double(1) - double(4)*r - 1i*dt/double(2)*V(j+1,i+1);
+            a(k) = 1.0 + 4.0*r + 1i*dt/2.0*V(j+1,i+1);
+            b(k) = 1.0 - 4.0*r - 1i*dt/2.0*V(j+1,i+1);
         }
     }
     A = create_diagonal_matrix(a,-r);
