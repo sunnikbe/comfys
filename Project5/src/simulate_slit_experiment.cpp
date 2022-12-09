@@ -179,15 +179,14 @@ void Slit_simulation::compute_potential()
 
 void Slit_simulation::find_A_and_B()
 {
-    r = 1.0i*dt/2.0/h/h;
+    r = complex<double>(0,1.0)*dt/2.0/h/h;
     for (int j = 0; j < M-2; j++)
     {
         for (int i = 0; i < M-2; i++)
         {
             int k = find_k(i,j);
-            //cout << k << "  " << i << "  " << j << endl;
-            a(k) = 1.0 + 4.0*r + 1i*dt/2.0*V(j+1,i+1);
-            b(k) = 1.0 - 4.0*r - 1i*dt/2.0*V(j+1,i+1);
+            a(k) = 1.0 + 4.0*r + complex<double>(0,1.0)*dt/2.0*V(j+1,i+1);
+            b(k) = 1.0 - 4.0*r - complex<double>(0,1.0)*dt/2.0*V(j+1,i+1);
         }
     }
     A = create_diagonal_matrix(a,-r);
@@ -214,7 +213,7 @@ void Slit_simulation::initial_state(double xc, double yc, double px, double py, 
         {
             int k = find_k(i,j);
             u(k) = exp(-((x(i)-xc)*(x(i)-xc))/(2*sigmax*sigmax) - ((y(j)-yc)*(y(j)-yc))/(2*sigmay*sigmay)
-            + 1i*px*((x(i)-xc)) + 1i*py*(y(j)-yc));
+            + complex<double>(0,1.0)*px*((x(i)-xc)) + complex<double>(0,1.0)*py*(y(j)-yc));
         }
     }
     complex<double> norm = cdot(u,u);
