@@ -4,7 +4,8 @@
 using namespace std;
 using namespace arma;
 
-Slit_simulation::Slit_simulation(int M_in, double h_in, double dt_in, double T_in)
+Slit_simulation::Slit_simulation(int M_in, double h_in, double dt_in, double T_in,
+                                 double v0_in, int number_of_slits_in)
 {
     M = M_in;
     N = (M-2)*(M-2);
@@ -17,6 +18,18 @@ Slit_simulation::Slit_simulation(int M_in, double h_in, double dt_in, double T_i
     u.zeros(N);
     a.zeros(N);
     b.zeros(N);
+
+    thickness = 0.02;
+    centre = 0.5;
+    length = 0.05;
+    slit_size = 0.05;
+    v0 = v0_in;
+    number_of_slits = number_of_slits_in;
+    V = mat(M,M,fill::zeros);
+    if (v0 != 0)
+    {
+        compute_potential();
+    }
 }
 
 void Slit_simulation::print_u()
@@ -33,7 +46,7 @@ void Slit_simulation::print_U()
 
 void Slit_simulation::print_norm()
 {
-    cout << cdot(u,u) << endl;
+    cout << scientific << cdot(u,u) << endl;
 }
 
 sp_cx_mat Slit_simulation::create_diagonal_matrix(cx_vec d, complex<double> r)
@@ -57,11 +70,37 @@ int Slit_simulation::find_k(int i, int j)
     return i + j*(M-2);
 }
 
-void Slit_simulation::compute_potential(double V0, double thickness, double centre, double length, double slit_size, int number_of_slits)
+void Slit_simulation::compute_potential()
 {
     double b0 = centre - thickness;
     double b1 = centre + thickness;
-    V = mat(M,M, fill::zeros);
+    int n_slit0 = (0.5 - (2*number_of_slits - 1)/2*slit_size)/1.0*M;
+    int n_slit1 = (0.5 + (2*number_of_slits - 1)/2*slit_size)/1.0*M;
+    int n_dslit = slit_size/h;
+    vec v_i(M);
+    for (int i = b0/1.0*M; i < b1/1.0*M; i++)
+    {
+        v_i.fill(v0);
+        for (int j = 0; j < number_of_slits; j++)
+        {
+            int n0 = n_slit0 + 2*j*n_dslit;
+            int n1 = n_slit0 + n_dslit + 2*j*n_dslit - 1;
+            v_i(span(n0,n1)).zeros();
+        }
+        V.col(i) = v_i;
+        
+        /*V.col(i).fill(1.0);
+        for (int j = 0; j < number_of_slits; j++)
+        {
+            V.col(i)(span(n_slit0+2*n_dslit,n_slit1+2*n_dslit)).fill(0);
+            for (int k = n_slit0+2*n_dslit; k < n_slit1+2*n_dslit; k++)
+            {
+                V.col(i)
+            }
+        }*/
+    }
+
+    /*V = mat(M,M, fill::zeros);
     if (number_of_slits == 1)
     {
         double s0 = 0.5 + slit_size/2;
@@ -92,6 +131,7 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
             {
                 for (int j = 0; j < M; j++)
                 {
+                    //cout << i << endl;
                     if (y(j) <= s0 && y(j) >= s1)
                     {
                         V(i,j) = V0;
@@ -133,7 +173,7 @@ void Slit_simulation::compute_potential(double V0, double thickness, double cent
                 }
             }
         }
-    }
+    }*/
     V.save("Potential_map.txt",raw_ascii);
 }
 
@@ -146,8 +186,8 @@ void Slit_simulation::find_A_and_B()
         {
             int k = find_k(i,j);
             //cout << k << "  " << i << "  " << j << endl;
-            a(k) = double(1) + double(4)*r + 1i*dt/double(2)*V(i+1,j+1);
-            b(k) = double(1) - double(4)*r - 1i*dt/double(2)*V(i+1,j+1);
+            a(k) = double(1) + double(4)*r + 1i*dt/double(2)*V(j+1,i+1);
+            b(k) = double(1) - double(4)*r - 1i*dt/double(2)*V(j+1,i+1);
         }
     }
     A = create_diagonal_matrix(a,-r);
@@ -193,6 +233,7 @@ void Slit_simulation::evolve_next_time_step()
         cx_vec b_vec = B*u;
         spsolve(u,A,b_vec, "superlu", opts);
         update_U(i);
+        //print_norm();
     }
     U.save("Output.bin",arma_binary);
 }

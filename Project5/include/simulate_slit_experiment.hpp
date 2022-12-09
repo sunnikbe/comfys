@@ -18,8 +18,8 @@
 class Slit_simulation
 {
     public:
-        int M,N,n;
-        double h,dt,T;
+        int M,N,n,number_of_slits;
+        double h,dt,T,v0,thickness,centre,length,slit_size;
         std::complex<double> r;
         arma::sp_cx_mat A,B;
         arma::cx_vec a;
@@ -30,7 +30,8 @@ class Slit_simulation
         arma::cx_cube U;
 
         //constructor
-        Slit_simulation(int M_in, double h_in, double dt_in, double T_in);
+        Slit_simulation(int M_in, double h_in, double dt_in, double T_in,
+                        double v0_in, int number_of_slits_in);
 
         //methods
         void print_u();
@@ -43,7 +44,7 @@ class Slit_simulation
 
         int find_k(int i, int j);
 
-        void compute_potential(double V0, double thickness, double centre, double lenght, double slit_size, int number_of_slits);
+        void compute_potential();
 
         void find_A_and_B();
 
