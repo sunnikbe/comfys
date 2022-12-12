@@ -98,3 +98,31 @@ plt.subplots_adjust(bottom = 0.18)
 # plt.show()
 # plt.savefig('probovertime.pdf') # ./main.exe 0 0
 # plt.savefig('probovertimedslit.pdf') # ./main.exe 2 1e10
+
+# Problem 8 Re(u_ij) Im(u_ij)
+for i in range(0,n,int((n-1)/2)):
+    plt.figure()
+    U_t = U[pa.single_slice, i]
+    norm = matplotlib.cm.colors.Normalize(vmin=0.0, vmax=np.abs(U_t.max()))
+    plt.imshow(pa.imag(U_t),extent=extent, cmap=plt.get_cmap('viridis'), norm=norm)
+    plt.text(0.95,0.95, f't = {t[i]*1e3:.1f}'+r'$\times10^3$', color='white',
+                    horizontalalignment='right', verticalalignment='top', fontsize=12)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title(r'Im($u_{ij}$)')
+
+plt.show()
+
+# Re(u_ij)
+for i in range(0,n,int((n-1)/2)):
+    plt.figure()
+    U_t = U[pa.single_slice, i]
+    norm = matplotlib.cm.colors.Normalize(vmin=0.0, vmax=np.abs(U_t.max()))
+    plt.imshow(pa.real(U_t),extent=extent, cmap=plt.get_cmap('viridis'), norm=norm)
+    plt.text(0.95,0.95, f't = {t[i]*1e3:.1f}'+r'$\times10^3$', color='white',
+                    horizontalalignment='right', verticalalignment='top', fontsize=12)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title(r'Re($u_{ij}$)')
+
+plt.show()
