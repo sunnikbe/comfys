@@ -10,7 +10,7 @@ int main(int arcg, const char* argv[])
     int number_of_slits = atoi(argv[1]);
     // strenght of the potential wall
     // needs only to be a large value, set to 0 for no slits
-    double v0 = atof(argv[2]); 
+    double v0 = atof(argv[2]);
 
     double h = 0.005; // positionstep
     int M = 1/h+1; // size of the position plane

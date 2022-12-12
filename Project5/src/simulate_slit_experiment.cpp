@@ -88,7 +88,7 @@ void Slit_simulation::compute_potential()
             v_i(span(n0,n1)).zeros();
         }
         V.col(i) = v_i;
-        
+
         /*V.col(i).fill(1.0);
         for (int j = 0; j < number_of_slits; j++)
         {
@@ -194,7 +194,7 @@ void Slit_simulation::find_A_and_B()
 }
 
 void Slit_simulation::update_U(int slice)
-{  
+{
     for (int j = 1; j < M-1; j++)
     {
         for (int i = 1; i < M-1; i++)
