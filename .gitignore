@@ -5,6 +5,7 @@
 ### C++ ###
 # Prerequisites
 *.d
+#.bin
 
 # TXT and pdfs
 *.txt
