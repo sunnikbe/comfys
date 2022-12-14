@@ -34,12 +34,6 @@ class Slit_simulation
                         double v0_in, int number_of_slits_in);
 
         //methods
-        void print_u();
-
-        void print_norm();
-
-        void print_U();
-
         arma::sp_cx_mat create_diagonal_matrix(arma::cx_vec d, std::complex<double> r);
 
         int find_k(int i, int j);
