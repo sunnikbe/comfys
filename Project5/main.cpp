@@ -9,6 +9,7 @@ int main(int arcg, const char* argv[])
     // terminal inputs
     int number_of_slits = atoi(argv[1]); // number og slits used
     double v0 = atof(argv[2]); // strenght of the potential wall
+    // set v0 to zero if you don't want any slits or walls
     double sigmay = atof(argv[3]); // input sigma_y (width of the wave packet in y-direction)
     double T = atof(argv[4]); // input total time of simulation
 
