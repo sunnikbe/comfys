@@ -5,7 +5,8 @@
 ### C++ ###
 # Prerequisites
 *.d
-#.bin
+*.bin
+*.DS_Store
 
 # TXT and pdfs
 *.txt
