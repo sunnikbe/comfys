@@ -1,10 +1,5 @@
 
-#include <iostream>
-#include <armadillo>
-#include <cmath>
-#include <fstream>
-#include <string>
-#include <iomanip>
+#include "tridiagonal.hpp"
 
 // function creates the tridiagonal matrix A(a,d,e) of size NxN 
 // from three vectors using the diag() function from armadillo

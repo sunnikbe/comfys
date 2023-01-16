@@ -1,15 +1,7 @@
 
-#define _USE_MATH_DEFINES
+#include "analytical_eigen.hpp"
 
-#include <iostream>
-#include <armadillo>
-#include <cmath>
-#include <fstream>
-#include <string>
-#include <iomanip>
-#include <stdio.h>
-#include <assert.h>
-
+// computes the eigenvalues and eigenvectors only for a symmetric tridiagonal matrix
 void compute_analytical_eigen_val_vec(int N, double d, double a){
     arma::vec eig_val = arma::vec(N).zeros();
     arma::mat eig_vec = arma::mat(N,N).zeros();
@@ -19,7 +11,11 @@ void compute_analytical_eigen_val_vec(int N, double d, double a){
             eig_vec(i-1,j-1) = std::sin(i*j*M_PI/(N+1));
         }
     }
+    eig_vec = arma::normalise(eig_vec);
 
-    eig_val.save("eig_val_anal.txt", arma::raw_ascii);
-    eig_vec.save("eig_vec_anal.txt", arma::raw_ascii);
+    printf("Analytical\n");
+    printf("Eigenvalues:\n");
+    printf("Eigenvectors:\n");
+    eig_val.print(std::cout);
+    eig_vec.print(std::cout);
 }
